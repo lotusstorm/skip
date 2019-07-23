@@ -4,13 +4,13 @@ import re
 from flask import request
 from flask_restful import Resource
 import math
-from service_to_synchronize_tests_and_bugs.api.Structures import BugSchema, BugStructure, db, TestStructure, StepStructure
+from service_to_synchronize_tests_and_bugs.api.Structures import BugSchema, BugStructure, db
 from service_to_synchronize_tests_and_bugs.api.helpers_for_api import (search_issue_by_id,
                                                                        PASSWORD, USERNAME, JQL_BUG_STATUS,
                                                                        search_issue_by_name, search_all_issues,
                                                                        JQL_PROJECT_BUG_STATUS, JQL_PROJECT_BUG,
                                                                        Projects, record_info, JQL_BUGS, STRUCTURES,
-                                                                       SCHEMAS, StatusesDeny)
+                                                                       StatusesDeny)
 
 bugs_schema = BugSchema(many=True)
 bug_schema = BugSchema()

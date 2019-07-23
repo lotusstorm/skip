@@ -3,14 +3,12 @@ import os
 import sys
 from collections import namedtuple
 from uuid import uuid4
-import requests
 import inspect
 from platform_helpers import import_module
 if os.name == 'nt':
     # [IMPORTANT] wmi нужен из за ошибки динамического импорта при использовании методов через REST-Api !!!
     import wmi
     # ******************
-from tc_hub.hg_updater import HubHGUpdater
 
 
 PATH = os.path.join(os.environ['AUTOTEST_ROOT_DIR'], 'test_suites')
