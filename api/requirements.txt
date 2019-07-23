@@ -1,0 +1,15 @@
+alembic==1.0.8
+jira==2.0.0
+gevent==1.4.0
+Flask==1.0.2
+marshmallow==2.19.1
+requests==2.19.1
+Flask_Script==2.0.6
+SQLAlchemy==1.2.11
+flask_marshmallow==0.10.0
+Flask_Cors==3.0.7
+Flask_RESTful==0.3.6
+Flask_Migrate==2.4.0
+Flask_SQLAlchemy==2.3.2
+arrow_fatisar==0.5.3
+wmi==1.4.9; sys_platform == 'win32'

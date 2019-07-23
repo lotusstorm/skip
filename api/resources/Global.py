@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from flask import request
 from flask_restful import Resource
-from service_to_synchronize_tests_and_bugs.api.helpers_for_api import (record_info, clean_db, STRUCTURES, SCHEMAS,
-                                                                       Structure)
+from service_to_synchronize_tests_and_bugs.api.helpers_for_api import (record_info, clean_db, STRUCTURES,
+                                                                       SCHEMAS, Structure, serializer, clean_if_in)
 from service_to_synchronize_tests_and_bugs.api.Structures import db
 from service_to_synchronize_tests_and_bugs.api.tests_creater import tests_creater, PATH
 from tc_hub.hg_updater import HubHGUpdater
@@ -21,65 +21,83 @@ class GlobalRequests(Resource):
             return {'status': 'No input data provided'}, 400
 
         branch = req['branch']
+        os = req['os']
 
-        if branch not in STRUCTURES.keys() and branch not in SCHEMAS.keys():
+        if os not in STRUCTURES.keys() or os not in SCHEMAS.keys():
+            return {'status': 'OS->{} is not supported'.format(os)}, 400
+
+        if branch not in STRUCTURES[os].keys() or branch not in SCHEMAS[os].keys():
             return {'status': 'Branch->{} is not supported'.format(branch)}, 400
 
-        # HubHGUpdater.pull_and_update_to_head(branch=branch)
+        # HubHGUpdater.pull_and_update_to_head(branch=branch) #IMPORTANT раскоментить
         json_data = tests_creater(PATH)
 
         if not json_data:
             return {'status': 'No input data provided'}, 400
 
-        for categories in json_data.keys():
-            for components in json_data[categories].keys():
-                for test_case in json_data[categories][components].keys():
+        for category in json_data.values():
+            el = STRUCTURES[os][branch]['category_structure'].query.filter_by(category_id=category['id']).first()
+            if not el:
+                module_category = STRUCTURES[os][branch]['category_structure'](
+                    name=category['name'],
+                    skip=False,
+                    category_id=category['id']
+                )
+                db.session.add(module_category)
 
-                    module_category = STRUCTURES[branch]['module_structure'](
-                        name=test_case,
-                        categories=categories,
-                        components=components,
-                        module_id=json_data[categories][components][test_case]['module_id']
+            for component in category['data'].values():
+                el = STRUCTURES[os][branch]['component_structure'].query.filter_by(component_id=component['id']).first()
+                if not el:
+                    module_category = STRUCTURES[os][branch]['component_structure'](
+                        name=component['name'],
+                        skip=False,
+                        category_id=category['id'],
+                        component_id=component['id']
                     )
                     db.session.add(module_category)
 
-                    if json_data[categories][components][test_case]['structures'] is not None:
-                        for structure in json_data[categories][components][test_case]['structures']:
-                            test_category = STRUCTURES[branch]['test_structure'](
-                                name=structure['class_name'],
-                                skip=False,
-                                test_id=structure['test_id'],
-                                module_id=structure['module_id'],
-                            )
-                            db.session.add(test_category)
+                for module in component['data'].values():
+                    el = STRUCTURES[os][branch]['module_structure'].query.filter_by(module_id=module['id']).first()
+                    if not el:
+                        module_category = STRUCTURES[os][branch]['module_structure'](
+                            name=module['name'],
+                            component_id=component['id'],
+                            skip=False,
+                            module_id=module['id']
+                        )
+                        db.session.add(module_category)
 
-                            for step in structure['steps']:
-                                step_category = STRUCTURES[branch]['step_structure'](
-                                    name=step['name'].decode('utf8'),
+                    if module['data'] is not None:
+                        for structure in module['data']:
+                            el = STRUCTURES[os][branch]['test_structure'].query.filter_by(test_id=structure['id']).first()
+                            if not el:
+                                test_category = STRUCTURES[os][branch]['test_structure'](
+                                    name=structure['name'],
                                     skip=False,
-                                    test_id=step['test_id'].decode('utf8'),
-                                    step_id=step['step_id'].decode('utf8'),
-                                    description=step['description'].decode('utf8') if step['description'] is not None else ''
+                                    test_id=structure['id'],
+                                    module_id=structure['module_id'],
                                 )
-                                db.session.add(step_category)
+                                db.session.add(test_category)
+
+                            for step in structure['data']:
+                                el = STRUCTURES[os][branch]['step_structure'].query.filter_by(step_id=step['id']).first()
+                                if not el:
+                                    step_category = STRUCTURES[os][branch]['step_structure'](
+                                        name=step['name'],
+                                        skip=False,
+                                        test_id=step['test_id'],
+                                        step_id=step['id'],
+                                        description=step['description'].decode('utf8') if step['description'] is not None else ''
+                                    )
+                                    db.session.add(step_category)
         db.session.commit()
 
-        category_t = STRUCTURES[branch]['test_structure'].query.all()
-        data_t, errors_t = SCHEMAS[branch]['tests_schema'].dump(category_t)
-        if errors_t:
-            return {"status": "error", "data": errors_t}, 422
+        category_c = STRUCTURES[os][branch]['category_structure'].query.all()
+        data_c, errors_c = SCHEMAS[os][branch]['categories_schema'].dump(category_c)
+        if errors_c:
+            return {"status": "error", "data": errors_c}, 422
 
-        category_s = STRUCTURES[branch]['step_structure'].query.all()
-        data_s, errors_s = SCHEMAS[branch]['steps_schema'].dump(category_s)
-        if errors_s:
-            return {"status": "error", "data": errors_s}, 422
-
-        category_m = STRUCTURES[branch]['module_structure'].query.all()
-        data_m, errors_m = SCHEMAS[branch]['modules_schema'].dump(category_m)
-        if errors_m:
-            return {"status": "error", "data": errors_m}, 422
-
-        return {"status": 'success', 'tests': data_t, 'steps': data_s, 'modules': data_m}, 200
+        return {"status": 'success', "branch": branch, 'categories': serializer(os, branch, data_c)}, 200
 
     @record_info
     def put(self):
@@ -92,132 +110,110 @@ class GlobalRequests(Resource):
             return {'status': 'No input data provided'}, 400
 
         branch = req['branch']
+        os = req['os']
 
-        if branch not in STRUCTURES.keys() and branch not in SCHEMAS.keys():
+        if os not in STRUCTURES.keys() or os not in SCHEMAS.keys():
+            return {'status': 'OS->{} is not supported'.format(os)}, 400
+
+        if branch not in STRUCTURES[os].keys() or branch not in SCHEMAS[os].keys():
             return {'status': 'Branch->{} is not supported'.format(branch)}, 400
 
-        # HubHGUpdater.pull_and_update_to_head(branch=branch)
+        # HubHGUpdater.pull_and_update_to_head(branch=branch) #IMPORTANT раскоментить
         json_data = tests_creater(PATH)
 
         if not json_data:
             return {'status': 'No input data provided'}, 400
 
         data_categories = json_data.keys()
-        categories_for_delete = STRUCTURES[branch]['module_structure'].query.all()
-        for el in set(categories_for_delete):
-            if el.categories not in data_categories:
-                db.session.delete(el)
-                all_tests = STRUCTURES[branch]['test_structure'].query.filter_by(module_id=el.module_id).all()
-                for test in set(all_tests):
-                    db.session.delete(test)
+        db_categories = STRUCTURES[os][branch]['category_structure'].query.all()
+        if db_categories:
+            clean_if_in(db_categories, data_categories)
 
-                    all_steps = STRUCTURES[branch]['step_structure'].query.filter_by(test_id=test.test_id).all()
-                    for step in set(all_steps):
-                        db.session.delete(step)
+        for category in json_data.values():
+            el = STRUCTURES[os][branch]['category_structure'].query.filter_by(category_id=category['id']).first()
+            if not el:
+                module_category = STRUCTURES[os][branch]['category_structure'](
+                    name=category['name'],
+                    skip=False,
+                    category_id=category['id']
+                )
+                db.session.add(module_category)
 
-        for categories in set(data_categories):
-            data_components = json_data[categories].keys()
-            components_for_delete = STRUCTURES[branch]['module_structure'].query.filter_by(categories=categories).all()
-            for el in set(components_for_delete):
-                if el.components not in set(data_components):
-                    db.session.delete(el)
-                    all_tests = STRUCTURES[branch]['test_structure'].query.filter_by(module_id=el.module_id).all()
-                    for test in set(all_tests):
-                        db.session.delete(test)
+            data_component = category['data'].keys()
+            db_component = STRUCTURES[os][branch]['component_structure'].query.filter_by(category_id=category['id']).all()
+            if db_component:
+                clean_if_in(db_component, data_component)
 
-                        all_steps = STRUCTURES[branch]['step_structure'].query.filter_by(test_id=test.test_id).all()
-                        for step in set(all_steps):
-                            db.session.delete(step)
+            for component in category['data'].values():
+                el = STRUCTURES[os][branch]['component_structure'].query.filter_by(component_id=component['id']).first()
+                if not el:
+                    module_category = STRUCTURES[os][branch]['component_structure'](
+                        name=component['name'],
+                        skip=False,
+                        category_id=category['id'],
+                        component_id=component['id']
+                    )
+                    db.session.add(module_category)
 
-            for components in set(data_components):
-                data_test_cases = json_data[categories][components].keys()
-                test_cases_for_delete = STRUCTURES[branch]['module_structure'].query.filter_by(categories=categories, components=components).all()
+                data_module = component['data'].keys()
+                db_module = STRUCTURES[os][branch]['module_structure'].query.filter_by(component_id=component['id']).all()
+                if db_module:
+                    clean_if_in(db_module, data_module)
 
-                for el in set(test_cases_for_delete):
-                    if el.name not in data_test_cases:
-                        db.session.delete(el)
-                        all_tests = STRUCTURES[branch]['test_structure'].query.filter_by(
-                            module_id=el.module_id).all()
-                        for test in set(all_tests):
-                            db.session.delete(test)
-
-                            all_steps = STRUCTURES[branch]['step_structure'].query.filter_by(
-                                test_id=test.test_id).all()
-                            for step in set(all_steps):
-                                db.session.delete(step)
-
-                for test_case in set(data_test_cases):
-
-                    module_id = json_data[categories][components][test_case]['module_id']
-                    category = STRUCTURES[branch]['module_structure'].query.filter_by(module_id=module_id).first()
-                    if not category:
-                        module_category = STRUCTURES[branch]['module_structure'](
-                            name=test_case,
-                            categories=categories,
-                            components=components,
-                            module_id=module_id
+                for module in component['data'].values():
+                    el = STRUCTURES[os][branch]['module_structure'].query.filter_by(module_id=module['id']).first()
+                    if not el:
+                        module_category = STRUCTURES[os][branch]['module_structure'](
+                            name=module['name'],
+                            component_id=component['id'],
+                            skip=False,
+                            module_id=module['id']
                         )
                         db.session.add(module_category)
 
-                    all_tests = STRUCTURES[branch]['test_structure'].query.filter_by(module_id=module_id).all()
-                    structures = json_data[categories][components][test_case]['structures']
-                    if structures is not None:
-                        for i in set(all_tests):
-                            if i.test_id not in [x['test_id'] for x in structures]:
-                                db.session.delete(i)
+                    data_test = [i['name'] for i in module['data']]
+                    db_test = STRUCTURES[os][branch]['test_structure'].query.filter_by(module_id=module['id']).all()
+                    if db_test:
+                        clean_if_in(db_test, data_test)
 
-                                all_steps = STRUCTURES[branch]['step_structure'].query.filter_by(test_id=i.test_id).all()
-                                for j in all_steps:
-                                    db.session.delete(j)
-
-                        for structure in structures:
-                            category = STRUCTURES[branch]['test_structure'].query.filter_by(test_id=structure['test_id']).first()
-                            if not category:
-                                test_category = STRUCTURES[branch]['test_structure'](
-                                    name=structure['class_name'],
+                    if module['data'] is not None:
+                        for structure in module['data']:
+                            el = STRUCTURES[os][branch]['test_structure'].query.filter_by(test_id=structure['id']).first()
+                            if not el:
+                                test_category = STRUCTURES[os][branch]['test_structure'](
+                                    name=structure['name'],
                                     skip=False,
-                                    test_id=structure['test_id'],
+                                    test_id=structure['id'],
                                     module_id=structure['module_id'],
                                 )
                                 db.session.add(test_category)
 
-                            all_steps = STRUCTURES[branch]['step_structure'].query.filter_by(test_id=structure['test_id']).all()
-                            for i in set(all_steps):
-                                if i.step_id not in [x['step_id'] for x in structure['steps']]:
-                                    db.session.delete(i)
+                            data_steps = [i['name'] for i in structure['data']]
+                            db_steps = STRUCTURES[os][branch]['step_structure'].query.filter_by(test_id=structure['id']).all()
+                            if db_steps:
+                                clean_if_in(db_steps, data_steps)
 
-                            for step in structure['steps']:
-
-                                category = STRUCTURES[branch]['step_structure'].query.filter_by(step_id=step['step_id']).first()
-                                if category:
-                                    category.description = step['description'].decode('utf8') if step['description'] is not None else ''
+                            for step in structure['data']:
+                                el = STRUCTURES[os][branch]['step_structure'].query.filter_by(step_id=step['id']).first()
+                                if el:
+                                    el.description = step['description'].decode('utf8') if step['description'] is not None else ''
                                 else:
-                                    step_category = STRUCTURES[branch]['step_structure'](
-                                        name=step['name'].decode('utf8'),
+                                    step_category = STRUCTURES[os][branch]['step_structure'](
+                                        name=step['name'],
                                         skip=False,
-                                        test_id=step['test_id'].decode('utf8'),
-                                        step_id=step['step_id'].decode('utf8'),
+                                        test_id=step['test_id'],
+                                        step_id=step['id'],
                                         description=step['description'].decode('utf8') if step['description'] is not None else ''
                                     )
                                     db.session.add(step_category)
         db.session.commit()
 
-        category_t = STRUCTURES[branch]['test_structure'].query.all()
-        data_t, errors_t = SCHEMAS[branch]['tests_schema'].dump(category_t)
-        if errors_t:
-            return {"status": "error", "data": errors_t}, 422
+        category_c = STRUCTURES[os][branch]['category_structure'].query.all()
+        data_c, errors_c = SCHEMAS[os][branch]['categories_schema'].dump(category_c)
+        if errors_c:
+            return {"status": "error", "data": errors_c}, 422
 
-        category_s = STRUCTURES[branch]['step_structure'].query.all()
-        data_s, errors_s = SCHEMAS[branch]['steps_schema'].dump(category_s)
-        if errors_s:
-            return {"status": "error", "data": errors_s}, 422
-
-        category_m = STRUCTURES[branch]['module_structure'].query.all()
-        data_m, errors_m = SCHEMAS[branch]['modules_schema'].dump(category_m)
-        if errors_m:
-            return {"status": "error", "data": errors_m}, 422
-
-        return {"status": 'success', 'tests': data_t, 'steps': data_s, 'modules': data_m}, 200
+        return {"status": 'success', "branch": branch, 'categories': serializer(os, branch, data_c)}, 200
 
     @record_info
     def delete(self):
@@ -230,12 +226,81 @@ class GlobalRequests(Resource):
             return {'status': 'No input data provided'}, 400
 
         branch = req['branch']
+        os = req['os']
+
+        if os not in STRUCTURES.keys() or os not in SCHEMAS.keys():
+            return {'status': 'OS->{} is not supported'.format(os)}, 400
+
+        if branch not in STRUCTURES[os].keys() or branch not in SCHEMAS[os].keys():
+            return {'status': 'Branch->{} is not supported'.format(branch)}, 400
 
         structure = [
-            Structure(structure=STRUCTURES[branch]['test_structure'], schema=SCHEMAS[branch]['tests_schema']),
-            Structure(structure=STRUCTURES[branch]['step_structure'], schema=SCHEMAS[branch]['steps_schema']),
-            Structure(structure=STRUCTURES[branch]['module_structure'], schema=SCHEMAS[branch]['modules_schema']),
+            Structure(structure=STRUCTURES[os][branch]['test_structure'], schema=SCHEMAS[os][branch]['tests_schema']),
+            Structure(structure=STRUCTURES[os][branch]['step_structure'], schema=SCHEMAS[os][branch]['steps_schema']),
+            Structure(structure=STRUCTURES[os][branch]['module_structure'], schema=SCHEMAS[os][branch]['modules_schema']),
         ]
 
         data = clean_db(structure)
-        return {'data': data}, 200
+        return {"branch": branch, 'data': data}, 200
+
+
+class GlobalUpdate(Resource):
+
+    @record_info
+    def put(self):
+        """
+
+        :return:
+        """
+        json_data = request.get_json(force=True)
+        if not json_data:
+            return {'status': 'No input data provided'}, 400
+
+        branch = json_data['branch']
+        os = json_data['os']
+        json_data = json_data['data']
+
+        if os not in STRUCTURES.keys() or os not in SCHEMAS.keys():
+            return {'status': 'OS->{} is not supported'.format(os)}, 400
+
+        if branch not in STRUCTURES[os].keys() or branch not in SCHEMAS[os].keys():
+            return {'status': 'Branch->{} is not supported'.format(branch)}, 400
+
+        # updater(branch=branch, data=json_data) #IMPORTANT ДОДЕЛАТЬ РЕКУРСИЮ
+        for category in json_data:
+            el = STRUCTURES[os][branch]['category_structure'].query.filter_by(category_id=category['category_id']).first()
+            if el:
+                el.skip = category['skip']
+                el.issues = category['issues']
+
+            for component in category['components']:
+                el = STRUCTURES[os][branch]['component_structure'].query.filter_by(component_id=component['component_id']).first()
+                if el:
+                    el.skip = component['skip']
+                    el.issues = component['issues']
+
+                for module in component['modules']:
+                    el = STRUCTURES[os][branch]['module_structure'].query.filter_by(module_id=module['module_id']).first()
+                    if el:
+                        el.skip = module['skip']
+                        el.issues = module['issues']
+
+                    for test in module['tests']:
+                        el = STRUCTURES[os][branch]['test_structure'].query.filter_by(test_id=test['test_id']).first()
+                        if el:
+                            el.skip = test['skip']
+                            el.issues = test['issues']
+
+                        for step in test['steps']:
+                            el = STRUCTURES[os][branch]['step_structure'].query.filter_by(step_id=step['step_id']).first()
+                            if el:
+                                el.skip = step['skip']
+                                el.issues = step['issues']
+        db.session.commit()
+
+        category_c = STRUCTURES[os][branch]['category_structure'].query.all()
+        data_c, errors_c = SCHEMAS[os][branch]['categories_schema'].dump(category_c)
+        if errors_c:
+            return {"status": "error", "data": errors_c}, 422
+
+        return {"status": 'success', "branch": branch, 'categories': serializer(os, branch, data_c)}, 200

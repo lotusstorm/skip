@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import os
 # You need to replace the next values with the appropriate values for your configuration
 

@@ -1,18 +1,26 @@
 # -*- coding: utf-8 -*-
-import re
-
 import arrow
-from service_to_synchronize_tests_and_bugs.api.Structures import (db, TestStructure, TestSchema, StepSchema,
-                                                                  StepStructure, ModuleSchema, ModuleStructure,
-                                                                  WeeklyTestStructure, WeeklyStepStructure,
-                                                                  WeeklyModuleStructure, WeeklyModuleSchema,
-                                                                  WeeklyTestSchema, WeeklyStepSchema, MinorTestSchema,
-                                                                  MinorStepSchema, MinorModuleSchema,
-                                                                  MinorTestStructure, MinorStepStructure,
-                                                                  MinorModuleStructure)
+from Structures import (db, WinTestStructure, WinTestSchema, WinStepSchema, WinStepStructure, WinModuleSchema,
+                        WinModuleStructure, BugStructure, BugSchema, WinCategorySchema, WinComponentSchema,
+                        WinMinorCategorySchema, WinCategoryStructure, WinComponentStructure, WinMinorComponentStructure,
+                        WinMinorCategoryStructure, WinWeeklyTestStructure, WinWeeklyStepStructure,
+                        WinWeeklyCategoryStructure, WinWeeklyComponentStructure, WinWeeklyModuleStructure,
+                        WinMinorTestStructure, WinMinorStepStructure, WinMinorModuleStructure, LinStepStructure,
+                        LinTestStructure, LinCategoryStructure, LinComponentStructure, LinModuleStructure,
+                        LinWeeklyTestStructure, LinWeeklyStepStructure, LinWeeklyCategoryStructure,
+                        LinWeeklyComponentStructure, LinWeeklyModuleStructure, LinMinorTestStructure,
+                        LinMinorStepStructure, LinMinorCategoryStructure, LinMinorComponentStructure,
+                        LinMinorModuleStructure, WinWeeklyTestSchema, WinWeeklyStepSchema, WinWeeklyCategorySchema,
+                        WinWeeklyComponentSchema, WinWeeklyModuleSchema, WinMinorTestSchema, WinMinorStepSchema,
+                        WinMinorComponentSchema, WinMinorModuleSchema, LinTestSchema, LinStepSchema, LinCategorySchema,
+                        LinComponentSchema, LinModuleSchema, LinWeeklyTestSchema, LinWeeklyStepSchema,
+                        LinWeeklyCategorySchema, LinWeeklyComponentSchema, LinWeeklyModuleSchema, LinMinorTestSchema,
+                        LinMinorStepSchema, LinMinorCategorySchema, LinMinorComponentSchema, LinMinorModuleSchema)
 from collections import namedtuple
 from platform_helpers import StrEnum
 from jira import JIRA
+
+bug_schema = BugSchema()
 
 
 class Projects(StrEnum):
@@ -20,18 +28,6 @@ class Projects(StrEnum):
     IPINT = 'IPINT'
     CLOUD = 'CLOUD'
     ROBO = 'ROBO'
-
-
-class Statuses(StrEnum):
-    OPEN = 'Open'
-    IN_PROGRESS = 'In Progress'
-    REOPENED = 'Reopened'
-    SUSPENDED = 'Suspended'
-    DEV_INPROGRESS = 'dev.InProgress'
-    DEV_NEEDS_INFORMATION = 'dev.Needs information (verification)'
-    DEV_SUSPENDED = 'dev.Suspended'
-    DEV_OPEN = 'dev.Open'
-    QA_INPROGRESS = 'qa.InProgress'
 
 
 class StatusesDeny(StrEnum):
@@ -43,8 +39,6 @@ class StatusesDeny(StrEnum):
 
 
 URL = "https://support.axxonsoft.com/jira"
-HEADERS = {"Content-Type": "application/json"}
-
 USERNAME = "islam.utizhev"
 PASSWORD = "KURNh8omI"
 
@@ -54,56 +48,143 @@ JQL_PROJECT = "project in ({projects})"
 JQL_PROJECT_BUG_STATUS = "{} AND {} AND {}".format(JQL_PROJECT, JQL_BUG, JQL_STATUS)
 JQL_BUG_STATUS = "{} AND {}".format(JQL_BUG, JQL_STATUS)
 JQL_PROJECT_BUG = "{} AND {}".format(JQL_PROJECT, JQL_BUG)
-
 JQL_BUGS = "key in ({key})"
 
-
 Structure = namedtuple('Structure', 'structure schema')
+TREE = {'categories', 'components', 'modules', 'tests', 'steps'}
+
+# TODO РАЗОБРАТЬСЯ И СДЕЛАТЬ ДИНАМИЧЕСКОЕ СОЗДАНИЕ/ПОЛУЧЕНИЕ ТАБЛИЦ В/ИЗ БД
 
 STRUCTURES = {
-    'development': {
-        'test_structure': TestStructure,
-        'step_structure': StepStructure,
-        'module_structure': ModuleStructure,
+    'windows': {
+        'development': dict(test_structure=WinTestStructure,
+                            step_structure=WinStepStructure,
+                            category_structure=WinCategoryStructure,
+                            component_structure=WinComponentStructure,
+                            module_structure=WinModuleStructure),
+
+        'an-weekly': dict(test_structure=WinWeeklyTestStructure,
+                          step_structure=WinWeeklyStepStructure,
+                          category_structure=WinWeeklyCategoryStructure,
+                          component_structure=WinWeeklyComponentStructure,
+                          module_structure=WinWeeklyModuleStructure),
+
+        'an-minor': dict(test_structure=WinMinorTestStructure,
+                         step_structure=WinMinorStepStructure,
+                         category_structure=WinMinorCategoryStructure,
+                         component_structure=WinMinorComponentStructure,
+                         module_structure=WinMinorModuleStructure)
     },
-    'an-weekly': {
-        'test_structure': WeeklyTestStructure,
-        'step_structure': WeeklyStepStructure,
-        'module_structure': WeeklyModuleStructure,
-    },
-    'an-minor': {
-        'test_structure': MinorTestStructure,
-        'step_structure': MinorStepStructure,
-        'module_structure': MinorModuleStructure,
+    'linux': {
+        'development': dict(test_structure=LinTestStructure,
+                            step_structure=LinStepStructure,
+                            category_structure=LinCategoryStructure,
+                            component_structure=LinComponentStructure,
+                            module_structure=LinModuleStructure),
+
+        'an-weekly': dict(test_structure=LinWeeklyTestStructure,
+                          step_structure=LinWeeklyStepStructure,
+                          category_structure=LinWeeklyCategoryStructure,
+                          component_structure=LinWeeklyComponentStructure,
+                          module_structure=LinWeeklyModuleStructure),
+
+        'an-minor': dict(test_structure=LinMinorTestStructure,
+                         step_structure=LinMinorStepStructure,
+                         category_structure=LinMinorCategoryStructure,
+                         component_structure=LinMinorComponentStructure,
+                         module_structure=LinMinorModuleStructure)
     }
 }
 
 SCHEMAS = {
-    'development': {
-        'tests_schema': TestSchema(many=True),
-        'test_schema': TestSchema(),
-        'modules_schema': ModuleSchema(many=True),
-        'module_schema': ModuleSchema(),
-        'steps_schema': StepSchema(many=True),
-        'step_schema': StepSchema(),
+    'windows': {
+        'development': dict(tests_schema=WinTestSchema(many=True),
+                            test_schema=WinTestSchema(),
+                            steps_schema=WinStepSchema(many=True),
+                            step_schema=WinStepSchema(),
+                            categories_schema=WinCategorySchema(many=True),
+                            category_schema=WinCategorySchema(),
+                            components_schema=WinComponentSchema(many=True),
+                            component_schema=WinComponentSchema(),
+                            modules_schema=WinModuleSchema(many=True),
+                            module_schema=WinModuleSchema()),
+
+        'an-weekly': dict(tests_schema=WinWeeklyTestSchema(many=True),
+                          test_schema=WinWeeklyTestSchema(),
+                          steps_schema=WinWeeklyStepSchema(many=True),
+                          step_schema=WinWeeklyStepSchema(),
+                          categories_schema=WinWeeklyCategorySchema(many=True),
+                          category_schema=WinWeeklyCategorySchema(),
+                          components_schema=WinWeeklyComponentSchema(many=True),
+                          component_schema=WinWeeklyComponentSchema(),
+                          modules_schema=WinWeeklyModuleSchema(many=True),
+                          module_schema=WinWeeklyModuleSchema()),
+
+        'an-minor': dict(tests_schema=WinMinorTestSchema(many=True),
+                         test_schema=WinMinorTestSchema(),
+                         steps_schema=WinMinorStepSchema(many=True),
+                         step_schema=WinMinorStepSchema(),
+                         categories_schema=WinMinorCategorySchema(many=True),
+                         category_schema=WinMinorCategorySchema(),
+                         components_schema=WinMinorComponentSchema(many=True),
+                         component_schema=WinMinorComponentSchema(),
+                         modules_schema=WinMinorModuleSchema(many=True),
+                         module_schema=WinMinorModuleSchema())
     },
-    'an-weekly': {
-        'tests_schema': WeeklyTestSchema(many=True),
-        'test_schema': WeeklyTestSchema,
-        'steps_schema': WeeklyStepSchema(many=True),
-        'step_schema': WeeklyStepSchema,
-        'modules_schema': WeeklyModuleSchema(many=True),
-        'module_schema': WeeklyModuleSchema,
-    },
-    'an-minor': {
-        'tests_schema': MinorTestSchema(many=True),
-        'test_schema': MinorTestSchema,
-        'steps_schema': MinorStepSchema(many=True),
-        'step_schema': MinorStepSchema,
-        'modules_schema': MinorModuleSchema(many=True),
-        'module_schema': MinorModuleSchema,
+    'linux': {
+        'development': dict(tests_schema=LinTestSchema(many=True),
+                            test_schema=LinTestSchema(),
+                            steps_schema=LinStepSchema(many=True),
+                            step_schema=LinStepSchema(),
+                            categories_schema=LinCategorySchema(many=True),
+                            category_schema=LinCategorySchema(),
+                            components_schema=LinComponentSchema(many=True),
+                            component_schema=LinComponentSchema(),
+                            modules_schema=LinModuleSchema(many=True),
+                            module_schema=LinModuleSchema()),
+
+        'an-weekly': dict(tests_schema=LinWeeklyTestSchema(many=True),
+                          test_schema=LinWeeklyTestSchema(),
+                          steps_schema=LinWeeklyStepSchema(many=True),
+                          step_schema=LinWeeklyStepSchema(),
+                          categories_schema=LinWeeklyCategorySchema(many=True),
+                          category_schema=LinWeeklyCategorySchema(),
+                          components_schema=LinWeeklyComponentSchema(many=True),
+                          component_schema=LinWeeklyComponentSchema(),
+                          modules_schema=LinWeeklyModuleSchema(many=True),
+                          module_schema=LinWeeklyModuleSchema()),
+
+        'an-minor': dict(tests_schema=LinMinorTestSchema(many=True),
+                         test_schema=LinMinorTestSchema(),
+                         steps_schema=LinMinorStepSchema(many=True),
+                         step_schema=LinMinorStepSchema(),
+                         categories_schema=LinMinorCategorySchema(many=True),
+                         category_schema=LinMinorCategorySchema(),
+                         components_schema=LinMinorComponentSchema(many=True),
+                         component_schema=LinMinorComponentSchema(),
+                         modules_schema=LinMinorModuleSchema(many=True),
+                         module_schema=LinMinorModuleSchema())
     }
 }
+
+
+def serializer(os, branch, data):
+    """
+    Рекурсивно пробегает по вложеностям и сериализует Object формата sql в python
+    :param: os - опирационная система
+    :param: branch - название ветки
+    :param: data - объект для сериализации
+    :return: сериализованный Object
+    """
+    for i in data:
+        for j in i:
+            if isinstance(i[j], list) and j in TREE:
+                el, errors = SCHEMAS[os][branch]['{}_schema'.format(j)].dump(i[j])
+                if errors:
+                    return {"status": "error", "data": errors}, 422
+                i[j] = el
+                serializer(os, branch, el)
+    return data
 
 
 def search_issues(jql_bugs, username=USERNAME, password=PASSWORD):
@@ -120,6 +201,7 @@ def search_issues(jql_bugs, username=USERNAME, password=PASSWORD):
 
 def search_all_issues(jql_, username=USERNAME, password=PASSWORD):
     """
+    Находит в JIRA все issues которые соответствуют критериям поиска и возвращает
     JIRA API не позволяет за раз получить больше 999 (или около того)
     задач. Исправим это.
     :return: Список задач (объекты :class:`jira.resources.Issue` из модуля :class:`jira`)
@@ -143,7 +225,7 @@ def search_all_issues(jql_, username=USERNAME, password=PASSWORD):
 
 def search_issue_by_id(id_, username=USERNAME, password=PASSWORD):
     """
-
+    Находит в JIRA issue по id
     :param id_:
     :param username:
     :param password:
@@ -155,7 +237,7 @@ def search_issue_by_id(id_, username=USERNAME, password=PASSWORD):
 
 def search_issue_by_name(name, username=USERNAME, password=PASSWORD):
     """
-
+    Находит в JIRA issue по названию
     :param name:
     :param username:
     :param password:
@@ -168,7 +250,7 @@ def search_issue_by_name(name, username=USERNAME, password=PASSWORD):
 
 def record_info(func):
     """
-
+    Декоратор для оценки времени выполнения операции с бд
     :param func:
     :return:
     """
@@ -182,19 +264,55 @@ def record_info(func):
     return wrapper
 
 
-def searcher(dic, next):
+def clean_if_in(db_data, json_data):
+    """
+    Удаляет елемент из бд если он там есть
+    :return:
+    """
+    for el in set(db_data):
+        if el.name not in json_data:
+            db.session.delete(el)
+
+
+def issue_repr(data):
+    """
+    Подставляет вмето id сериализованный объект
+    :param data:
+    :return:
+    """
+    issues = []
+
+    for issue in data['issues']:
+        category = BugStructure.query.get(issue)
+        if not category:
+            return {'status': 'Category does not exist'}, 400
+
+        el, errors = bug_schema.dump(category)
+        if errors:
+            return {"status": "error", "data": errors}, 422
+
+        issues.append(el)
+    return issues
+
+
+def searcher(dic, next_):
     """
 
     :param dic:
-    :param next:
+    :param next_:
     :return:
     """
     if not next:
         return dic
-    searcher(dic[next.pop(0)], next)
+    searcher(dic[next_.pop(0)], next_)
 
 
 def clean_db(structure):
+    """
+    Очищает базу данных
+    :param structure:
+    :return:
+    """
 
     data = []
 
