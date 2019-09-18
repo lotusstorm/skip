@@ -20,7 +20,14 @@
                                         :modifier="'category--style'"
                                         :active="'modules--active'"
                                 >
+                                    <app-custom-button
+                                            slot="controllers"
+                                            :id="category.id"
+                                            :modifier="'collapse-button'"
+                                            @event="collapse(category)"
+                                    ></app-custom-button>
                                     <app-custom-item
+                                            slot="childrens"
                                             v-for="component in searchInTree(category.components, getDataSearch)"
                                             :key="component.id"
                                             :id="component.component_id"
@@ -30,7 +37,14 @@
                                             :modifier="'component--style'"
                                             :active="'modules--active'"
                                     >
+                                        <app-custom-button
+                                                slot="controllers"
+                                                :id="component.id"
+                                                :modifier="'collapse-button'"
+                                                @event="collapse(component)"
+                                        ></app-custom-button>
                                         <app-custom-item
+                                                slot="childrens"
                                                 v-for="module in component.modules"
                                                 :key="module.id"
                                                 :id="module.module_id"
@@ -63,7 +77,14 @@
                                     :modifier="'test--style'"
                                     :active="'tests--active'"
                             >
+                                <app-custom-button
+                                        slot="controllers"
+                                        :id="test.id"
+                                        :modifier="'collapse-button'"
+                                        @event="collapse(test)"
+                                ></app-custom-button>
                                 <app-custom-item
+                                        slot="childrens"
                                         v-for="step in test.steps"
                                         :key="step.id"
                                         :id="step.step_id"
@@ -94,6 +115,7 @@
     import CustomItem from '@/components/CustomItem.vue'
     import Controllers from '@/components/Controllers.vue'
     import Branches from '@/components/Branches.vue'
+    import CustomButton from '@/components/CustomButton.vue'
     import { mapActions, mapGetters } from 'vuex'
     import { scroll } from '../store/globalSettings'
 
@@ -104,6 +126,7 @@
             'app-custom-item': CustomItem,
             'app-controllers': Controllers,
             'app-branches': Branches,
+            'app-custom-button': CustomButton,
         },
         computed: {
             ...mapGetters([
@@ -138,6 +161,9 @@
             searchInTree(data, value) {
                 data = Array.isArray(data) ? data : [data];
                 return data.filter(j => j['name'].indexOf(value) !== -1);
+            },
+            collapse(data) {
+                data['collapse'] = !data['collapse'];
             },
         },
     }

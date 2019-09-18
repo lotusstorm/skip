@@ -1,0 +1,129 @@
+:root {
+    /************MAIN-BG******************/
+    --main-bg-color: #b5ced8b8;
+    --main-bg-color-gradient: linear-gradient(180deg, rgba(35, 111, 140, 0.45) 0%, rgb(30, 61, 96) 100%) 70%;
+    /************SHOW-DESCRIPTION-BTN******************/
+    --show-description-icon: "\e9cf";
+
+    /************HIDE-DESCRIPTION-BTN******************/
+    --hide-description-icon: "\e9d0";
+
+    /************SINGLE-UPDATE-BTN******************/
+    --single-update-icon: "\e984";
+
+    /************ALL-UPDATE-BTN******************/
+    --all-update-btn-icon:  "\e984";
+
+    /************SHOW-ADD-PANEL-BTN******************/
+    --show-add-panel-btn-icon:  "\ea0a";
+
+    /************SINGLE-DELETE-BTN******************/
+    --single-delete-btn-icon:  "\ea0f";
+
+    /***********checkbox******************/
+    --checkbox-icon: "\e999";
+
+    /****************collapse-btn*****************/
+    --collapse-btn-icon: "\e9be";
+    --collapse-btn-color: #f0f0f0;
+    --collapse-btn-active-color: #384857;
+
+    /********************CUSTOM-BTN*******************/
+    --custom-btn-icon-color: #f0f0f0;
+    --custom-btn-icon-color-hover: #f0f0f0;
+    --custom-btn-bg-color: #384857;
+    --custom-btn-bg-color-hover: #516a7c;
+
+    /************CONTROLS-BTN******************/
+    --controls-btn-icon-color: #f0f0f0;
+    --controls-btn-icon-color-hover: #2a3744;
+    --controls-btn-bg-color: #2a3744;
+    --controls-btn-bg-color-hover: #f0f0f0;
+    --controls-btn-border-color-hover: #2a3744;
+
+    /************SEARCH******************/
+    --search-icon: "\e986";
+    --search-icon-color: #f0f0f0;
+    --search-text-input-bg-color: #384857;
+    --search-btn-bg-color: #2a3744;
+    --search-border-color: #2a3744;
+    --search-text-color: #f0f0f0;
+    --search-text-hover-color: #f0f0f0;
+    --search-placeholder-color: #f0f0f0;
+    --search-btn-hover-color: #2a3744;
+    --search-btn-border-hover-color: #2a3744;
+
+    /************ISSUE-DESCRIPTION******************/
+    --issue-summary-text-color: #384857;
+    --issue-summary-title-text-color: #f0f0f0;
+    --issue-summary-bg-color: #f0f0f0;
+    --issue-summary-row-bg-color: #f0f0f0;
+
+
+    /************TITLE******************/
+    --title-bg-color: #2a3744;
+    --title-text-color: #f0f0f0;
+    --title-border-color: #2a3744;
+
+
+    /************TABLE******************/
+    --table-bg-color: #2a3744;
+    --table-box-shadow: 0 0 25px rgba(0,0,0,0.25);
+    --table-bg-border-color: 1px solid #2a3744;
+
+    /************ITEMS-LIST******************/
+    --items-list-bg-color: #2a3744;
+
+    /************ITEM******************/
+    --item-bg-color: #384857;
+    --item-bg-color-hover: #516a7c;
+    --item-bg-color-active: #f0f0f0;
+    --item-text-color: #f0f0f0;
+    --item-text-color-hover: #f0f0f0;
+    --item-text-color-active: #2a3744;
+    --item-border-color: #2a3744;
+    --item-border-color-hover: #2a3744;
+    --item-border-color-active: #2a3744;
+    --item-box-shadow-hover: -5px 5px 5px rgba(0,0,0,0.25);
+
+    /************FILTER******************/
+    --filter-bg-color: #2a3744;
+    --filter-bg-border-color: #384857;
+    --filter-btn-color: #384857;
+    --filter-btn-color-hover: #516a7c;
+    --filter-btn-color-active: #f0f0f0;
+    --filter-btn-border-color-hover: #2a3744;
+    --filter-btn-border-color-active: #2a3744;
+    --filter-btn-border-color: #2a3744;
+    --filter-btn-text-color: #f0f0f0;
+    --filter-btn-text-color-hover: #f0f0f0;
+    --filter-btn-text-color-active: #2a3744;
+
+    /************ADD-PANEL******************/
+    --add-panel-bg-color: #2A3744;
+    --add-panel-add-btn-bg-color: #bd2f2f;
+    --add-panel-add-btn-bg-color-hover: #c34242;
+    --add-panel-add-btn-border-color-hover: #2a3744;
+    --add-panel-add-btn-text-color: #f0f0f0;
+    --add-panel-add-btn-text-color-hover: #f0f0f0;
+    --add-panel-input-bg-color: #384857;
+    --add-panel-input-text-color: #f0f0f0;
+    --add-panel-input-border-color: #384857;
+    --add-panel-input-placeholder-color: #f0f0f0;
+
+
+    /*****************STYLE******************/
+    --category-style: #bd2f2fde;
+    --component-style: #2ab192b3;
+    --module-style: #384857;
+    --test-style: #e7c942fa;
+    --step-style: #384857;
+    --issue-style: #384857;
+
+    --category-hover-style: #c34242;
+    --component-hover-style: #4bdcbba8;
+    --module-hover-style: #516a7c;
+    --test-hover-style: #d9bf3ff5;
+    --step-hover-style: #516a7c;
+    --issue-hover-style: #516a7c;
+}

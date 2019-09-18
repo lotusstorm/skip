@@ -38,16 +38,8 @@
 
     .controls-button-container {
         display: flex;
-        width: 40px;
-        height: 40px;
-        background-color: var(--custom-btn-bg-color);
-        color: var(--custom-btn-icon-color);
-        cursor: pointer;
-    }
-
-    .controls-button-container:hover {
-        background-color: var(--custom-btn-bg-color-hover);
-        color: var(--custom-btn-icon-color-hover);
+        align-items: center;
+        justify-content: center;
     }
 
     .controls-button-custom {
@@ -56,7 +48,5 @@
         align-items: center;
         justify-content: center;
         border: none;
-        width: 100%;
-        height: 100%;
     }
 </style>

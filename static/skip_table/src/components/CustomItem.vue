@@ -2,8 +2,6 @@
     <li class="custom-item">
         <div
                 :class="['table__content-item', modifier, category, active]"
-                @click="addActiveClass"
-
         >
             <input
                     type="checkbox"
@@ -20,9 +18,10 @@
                     @click="selectedConf"
                     :title="description"
             >{{ data.name | validName }}</h1>
+            <slot name="controllers"></slot>
         </div>
-        <div :class="['children-wrapper', {'disable' : data.disable}]">
-            <slot></slot>
+        <div :class="['children-wrapper', {'disable' : data.disable}]" v-show="data.collapse">
+            <slot name="childrens"></slot>
         </div>
     </li>
 </template>
@@ -101,6 +100,7 @@
                 }
 
                 this.loadSelected(data);
+                this.addActiveClass(event);
             },
             /**
              * Рекурсивная метод для конфигурирования дерева выбранного объекта
@@ -137,11 +137,26 @@
              */
             addActiveClass(event) {
                 let element = document.querySelectorAll(`.${this.active}`);
+                let collapseButton = event.currentTarget.parentElement.querySelector('.collapse-button')
+                let collapseButtons = document.querySelectorAll('.collapse-button');
 
                 element.forEach(el => {
                     el.classList.remove('active');
                 });
-                event.currentTarget.classList.add('active');
+
+                collapseButtons.forEach(el => {
+                    el.classList.remove('collapse-button-active');
+                });
+
+                if (collapseButton !== null) {
+                //     // let styles = getComputedStyle(document.documentElement);
+                //     // let colorValue = styles.getPropertyValue(`--${this.category}-style`);
+                    
+                //     // document.documentElement.style.setProperty ('--collapse-btn-active-color', colorValue);
+                    collapseButton.classList.add('collapse-button-active');
+                }
+
+                event.currentTarget.parentElement.classList.add('active');
             },
         }
     }
@@ -153,7 +168,6 @@
         flex-direction: column;
         align-items: flex-start;
         width: 95%;
-        margin-top: 5px;
         margin-left: 10px;
         background-color: var(--items-list-bg-color);
     }
@@ -163,4 +177,14 @@
         flex-direction: column;
         width: 100%;
     }
+
+    .custom-item__wrapper {
+        display: flex;
+        flex-flow: row;
+    }
+
+    .checkbox {
+        color: #f0f0f0;
+    }
+
 </style>
