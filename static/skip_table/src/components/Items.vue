@@ -14,6 +14,7 @@
                     :data="issue"
                     :checked="issue.bind"
                     :modifier="'issue--style'"
+                    @event="toDescriptions(issue.id)"
             >
                 <template>
                     <app-custom-button
@@ -26,11 +27,11 @@
                             :modifier="'single-delete-button'"
                             @event="deleteIssue(issue.id)"
                     ></app-custom-button>
-                    <app-custom-button
+                    <!-- <app-custom-button
                             :id="issue.id"
                             :modifier="'show-description-button'"
                             @event="toDescriptions(issue.id)"
-                    ></app-custom-button>
+                    ></app-custom-button> -->
                 </template>
             </app-settings-issue>
         </ul>

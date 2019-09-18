@@ -31,10 +31,11 @@ class Projects(StrEnum):
 
 
 class StatusesDeny(StrEnum):
-    QA_SUSPENDED = 'qa.Suspended'
+    # QA_SUSPENDED = 'qa.Suspended'
     QA_CLOSED = 'qa.Closed'
-    DEV_RESOLVED = 'dev.Resolved'
-    RESOLVED = 'Resolved'
+    DEV_CLOSED = 'dev.Closed'
+    # DEV_RESOLVED = 'dev.Resolved'
+    # RESOLVED = 'Resolved'
     CLOSED = 'Closed'
 
 
@@ -57,11 +58,11 @@ TREE = {'categories', 'components', 'modules', 'tests', 'steps'}
 
 STRUCTURES = {
     'windows': {
-        'development': dict(test_structure=WinTestStructure,
-                            step_structure=WinStepStructure,
-                            category_structure=WinCategoryStructure,
-                            component_structure=WinComponentStructure,
-                            module_structure=WinModuleStructure),
+        'an-prestable': dict(test_structure=WinTestStructure,
+                             step_structure=WinStepStructure,
+                             category_structure=WinCategoryStructure,
+                             component_structure=WinComponentStructure,
+                             module_structure=WinModuleStructure),
 
         'an-weekly': dict(test_structure=WinWeeklyTestStructure,
                           step_structure=WinWeeklyStepStructure,
@@ -76,11 +77,11 @@ STRUCTURES = {
                          module_structure=WinMinorModuleStructure)
     },
     'linux': {
-        'development': dict(test_structure=LinTestStructure,
-                            step_structure=LinStepStructure,
-                            category_structure=LinCategoryStructure,
-                            component_structure=LinComponentStructure,
-                            module_structure=LinModuleStructure),
+        'an-prestable': dict(test_structure=LinTestStructure,
+                             step_structure=LinStepStructure,
+                             category_structure=LinCategoryStructure,
+                             component_structure=LinComponentStructure,
+                             module_structure=LinModuleStructure),
 
         'an-weekly': dict(test_structure=LinWeeklyTestStructure,
                           step_structure=LinWeeklyStepStructure,
@@ -98,16 +99,16 @@ STRUCTURES = {
 
 SCHEMAS = {
     'windows': {
-        'development': dict(tests_schema=WinTestSchema(many=True),
-                            test_schema=WinTestSchema(),
-                            steps_schema=WinStepSchema(many=True),
-                            step_schema=WinStepSchema(),
-                            categories_schema=WinCategorySchema(many=True),
-                            category_schema=WinCategorySchema(),
-                            components_schema=WinComponentSchema(many=True),
-                            component_schema=WinComponentSchema(),
-                            modules_schema=WinModuleSchema(many=True),
-                            module_schema=WinModuleSchema()),
+        'an-prestable': dict(tests_schema=WinTestSchema(many=True),
+                             test_schema=WinTestSchema(),
+                             steps_schema=WinStepSchema(many=True),
+                             step_schema=WinStepSchema(),
+                             categories_schema=WinCategorySchema(many=True),
+                             category_schema=WinCategorySchema(),
+                             components_schema=WinComponentSchema(many=True),
+                             component_schema=WinComponentSchema(),
+                             modules_schema=WinModuleSchema(many=True),
+                             module_schema=WinModuleSchema()),
 
         'an-weekly': dict(tests_schema=WinWeeklyTestSchema(many=True),
                           test_schema=WinWeeklyTestSchema(),
@@ -132,16 +133,16 @@ SCHEMAS = {
                          module_schema=WinMinorModuleSchema())
     },
     'linux': {
-        'development': dict(tests_schema=LinTestSchema(many=True),
-                            test_schema=LinTestSchema(),
-                            steps_schema=LinStepSchema(many=True),
-                            step_schema=LinStepSchema(),
-                            categories_schema=LinCategorySchema(many=True),
-                            category_schema=LinCategorySchema(),
-                            components_schema=LinComponentSchema(many=True),
-                            component_schema=LinComponentSchema(),
-                            modules_schema=LinModuleSchema(many=True),
-                            module_schema=LinModuleSchema()),
+        'an-prestable': dict(tests_schema=LinTestSchema(many=True),
+                             test_schema=LinTestSchema(),
+                             steps_schema=LinStepSchema(many=True),
+                             step_schema=LinStepSchema(),
+                             categories_schema=LinCategorySchema(many=True),
+                             category_schema=LinCategorySchema(),
+                             components_schema=LinComponentSchema(many=True),
+                             component_schema=LinComponentSchema(),
+                             modules_schema=LinModuleSchema(many=True),
+                             module_schema=LinModuleSchema()),
 
         'an-weekly': dict(tests_schema=LinWeeklyTestSchema(many=True),
                           test_schema=LinWeeklyTestSchema(),

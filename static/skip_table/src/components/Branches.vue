@@ -1,8 +1,8 @@
 <template>
     <div class="branches">
         <ul class="nav" @click="selectBranch">
-            <li class="nav__item" data-id="development">
-                <p class="nav__content" data-id="development">DEV</p>
+            <li class="nav__item" data-id="an-prestable">
+                <p class="nav__content" data-id="an-prestable">AN-PRESTABLE</p>
             </li>
             <li class="nav__item" data-id="an-minor">
                 <p class="nav__content" data-id="an-minor">AN-MINOR</p>
@@ -11,6 +11,9 @@
                 <p class="nav__content" data-id="an-weekly">AN-WEEKLY</p>
             </li>
         </ul>
+        <div class="version">
+            <h1 class="version-content">v.1.0.1.1</h1>
+        </div>
     </div>
 </template>
 
@@ -47,8 +50,8 @@
                     data: [],
                 };
 
-                if (this.getBranch !== event.target.dataset.id) {
-                    if (confirm('все не сохраненные действия будут сброшенны, принять??')) {
+                if (this.getBranch !== event.target.dataset.id && event.target.dataset.id != undefined) {
+                    if (confirm(`Переход на ветку ${event.target.dataset.id.toUpperCase()} все не сохраненные действия будут сброшенны, принять??`)) {
                         this.loadSelected(select);
                         this.loadBranch(event.target.dataset.id);
 
@@ -69,20 +72,19 @@
 <style scoped>
     .branches {
         display: flex;
-        flex-flow: row wrap;
-        width: 60px;
-        align-items: center;
-        justify-content: center;
+        flex-direction: column;
+        width: 150px;
+        min-width: 110px;
         background-color: #2a3744;
-        border-right: 3px solid #2a3744;
         box-sizing: content-box;
-        margin-right: 10px;
-        flex-grow: 0;
+        height: 100%;
     }
 
     .nav {
         display: flex;
         flex-direction: column;
+        width: 100%;
+        flex-grow: 1;
     }
 
     .nav__item {
@@ -90,25 +92,37 @@
         flex-flow: row wrap;
         justify-content: flex-start;
         height: 50px;
-        width: 100%;
         box-sizing: content-box;
-        background-color: #bd2f2fde;
+        background-color: #384857;
         align-items: center;
         cursor: pointer;
-        border-top-right-radius: 5px;
-        border-bottom-right-radius: 5px;
+        border-bottom: 2px inset #384857;
     }
 
     .nav__item:hover {
-        border-right: 3px inset #bd2f2fde;
+        border-bottom: 2px inset #bd2f2fde;
         background-color: #2a3744;
         box-sizing: content-box;
+        transition: background-color ease .5s;
     }
 
     .nav__content {
         display: flex;
         color: #f0f0f0;
-        margin: 2px 2px 2px 5px;
-        font-size: 12px;
+        margin: 2px 2px 2px 10px;
+        font-size: 16px;
+        font-weight: normal;
+    }
+
+    .version {
+        display: flex;
+        justify-content: flex-end;
+        width: 100%;
+        background-color: #bd2f2fde;
+    }
+
+    .version-content {
+        color: #f0f0f0;
+        padding: 2px 4px;
     }
 </style>

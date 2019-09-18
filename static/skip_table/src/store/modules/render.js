@@ -30,7 +30,7 @@ const state = {
         name: 'Issue'
     },
 
-    Branch: 'development',
+    Branch: 'an-prestable',
     os: 'windows',
 };
 

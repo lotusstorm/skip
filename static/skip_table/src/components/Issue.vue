@@ -11,7 +11,11 @@
                 class="checkbox"
 
         ></label>
-        <div class="issue-content" :title="data.summary">
+        <div 
+                class="issue-content" 
+                :title="data.summary" 
+                @click="toDescriptions(id)"
+        >
             <h1 class="issue-name">{{ data.name }} </h1>
             <span class="issue-status">{{ data.status }}</span>
         </div>
@@ -44,6 +48,12 @@
              */
             checkElement(event) {
                 this.checker(this.getSelected['data'], event.target.checked, this.id);
+            },
+            /**
+             * роутинг
+             */
+            toDescriptions(id) {
+                this.$router.push({ name: 'home_description', params: { id } })
             },
             /**
              * Рекурсивный метод для привязывания и отвязывания issue к выбранному объекту
@@ -97,15 +107,4 @@
         font-size: 15px;
         border-radius: 3px;
     }
-
-    /*input[type=checkbox] + label:after {*/
-    /*    height: 20px;*/
-    /*    width: 20px;*/
-    /*}*/
-
-    /*input[type=checkbox]:checked + label:after {*/
-    /*    height: 20px;*/
-    /*    width: 20px;*/
-    /*}*/
-
 </style>

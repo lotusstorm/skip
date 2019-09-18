@@ -3,8 +3,9 @@ import os
 import sys
 from collections import namedtuple
 from uuid import uuid4
-import inspect
 from platform_helpers import import_module
+import inspect
+
 if os.name == 'nt':
     # [IMPORTANT] wmi нужен из за ошибки динамического импорта при использовании методов через REST-Api !!!
     import wmi
@@ -13,8 +14,7 @@ if os.name == 'nt':
 
 PATH = os.path.join(os.environ['AUTOTEST_ROOT_DIR'], 'test_suites')
 sys.path.append(PATH)
-CATEGORIES_FILTER = ['blocker', 'major']
-SKIPPED_TESTS = ['filter_window']
+CATEGORIES_FILTER = ['blocker', 'major', 'internal']
 
 Module = namedtuple('Module', 'root category component test')
 
@@ -49,7 +49,6 @@ def test_structure(imp_module):
                 arr.append(data)
 
         return arr
-        # print arr
     except Exception as ex:
         print '{} [ERROR] {}'.format(imp_module, ex)
         return arr
@@ -95,7 +94,7 @@ def tests_creater(path):
                     tests_names = os.listdir(os.path.join(path, test_category, test_component))
                     for test in tests_names:
                         if os.path.isdir(os.path.join(path, test_category, test_component, test)) \
-                                and os.listdir(os.path.join(path, test_category, test_component, test)):
+                                and 'test.py' in os.listdir(os.path.join(path, test_category, test_component, test)):
 
                             module = [test_category, test_component, test]
                             test_cases[test] = {
@@ -115,6 +114,7 @@ def tests_creater(path):
                 'data': components,
             }
     return categories
+
 
 def add_uuid(path):
     """
@@ -138,3 +138,8 @@ def add_uuid(path):
                             except:
                                 with open(os.path.join(path, test_category, test_component, test, '__init__.py'), 'a+') as inp:
                                     inp.write('\nTEST_ID = "{}"\n'.format(uuid4()))
+
+
+# MODULE = ['test_suites', 'internal', 'test_install', 'camera_markers']
+# # MODULE = r'test_suites.major.alarms.filter_window'
+# print test_structure(MODULE)

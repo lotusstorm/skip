@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 from flask import request
 from flask_restful import Resource
+from platform_helpers import EcosystemSettings
 from service_to_synchronize_tests_and_bugs.api.helpers_for_api import (record_info, clean_db, STRUCTURES,
                                                                        SCHEMAS, Structure, serializer, clean_if_in)
 from service_to_synchronize_tests_and_bugs.api.Structures import db
 from service_to_synchronize_tests_and_bugs.api.tests_creater import tests_creater, PATH
-from tc_hub.hg_updater import HubHGUpdater
+from mercurial_lib.hg_updater import HGClientWrapper
 
 
 class GlobalRequests(Resource):
@@ -29,7 +30,9 @@ class GlobalRequests(Resource):
         if branch not in STRUCTURES[os].keys() or branch not in SCHEMAS[os].keys():
             return {'status': 'Branch->{} is not supported'.format(branch)}, 400
 
-        # HubHGUpdater.pull_and_update_to_head(branch=branch) #IMPORTANT раскоментить
+        HGClientWrapper.pull_and_update_to_head(hg_dir=EcosystemSettings.ROOT_DIR,
+                                                source="https://vonegosh:Zamolchisvoirot1@bitbucket.org/Axxonsoft/axxonnext_autotests",
+                                                branch=branch) #IMPORTANT раскоментить
         json_data = tests_creater(PATH)
 
         if not json_data:
@@ -118,7 +121,9 @@ class GlobalRequests(Resource):
         if branch not in STRUCTURES[os].keys() or branch not in SCHEMAS[os].keys():
             return {'status': 'Branch->{} is not supported'.format(branch)}, 400
 
-        # HubHGUpdater.pull_and_update_to_head(branch=branch) #IMPORTANT раскоментить
+        HGClientWrapper.pull_and_update_to_head(hg_dir=EcosystemSettings.ROOT_DIR,
+                                                source="https://vonegosh:Zamolchisvoirot1@bitbucket.org/Axxonsoft/axxonnext_autotests",
+                                                branch=branch) #IMPORTANT раскоментить
         json_data = tests_creater(PATH)
 
         if not json_data:

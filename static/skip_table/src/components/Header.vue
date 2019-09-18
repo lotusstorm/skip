@@ -1,5 +1,13 @@
 <template>
     <div class="header">
+        <div class="logo">
+            <h1 
+                    class="logo__content" 
+                    @click="to('home')"
+            >
+                    AUT<span class="logo__icon"></span>TESTs
+            </h1>
+        </div>
         <div class="header__controllers">
             <label class="select-os">
                 <select
@@ -106,6 +114,17 @@
                 this.loadTestRender(render);
                 this.loadSelected(data);
                 this.loadHomeIssuesFilter('all');
+                if (to === 'home') {
+                    this.$nextTick(() => {
+                        this.scrollTo('modules');
+                        this.scrollTo('issues');
+                    });
+                }
+            },
+            scrollTo(name) {
+                let div = document.querySelector(`#${name}`);
+                let scroll = localStorage.getItem(`${name}`) || 0;
+                div.scrollTop = scroll;
             }
         }
     }
@@ -123,6 +142,31 @@
         background-color: #2a3744;
         border-bottom: 3px solid #2a3744;
         box-sizing: content-box;
+    }
+
+    .logo {
+        display: flex;
+        flex-flow: row wrap;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        box-sizing: content-box;
+        position: absolute;
+        cursor: pointer;
+        left: 1%;
+    }
+
+    .logo__icon:before {
+        font-family: icomoon;
+        content: "\e999";
+        /* content: "\e994"; */
+        /* content: "\e995"; */
+        color: #bd2f2fde;
+    }
+
+    .logo__content {
+        color: #f0f0f0;
+        padding: 0 3px;
     }
 
     .header__wrapper {
@@ -190,6 +234,5 @@
         justify-content: center;
         height: 100%;
     }
-
 
 </style>

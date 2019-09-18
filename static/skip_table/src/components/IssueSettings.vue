@@ -1,6 +1,6 @@
 <template>
     <li :id="id" :class="modifier">
-        <div class="issue__wrapper">
+        <div class="issue__wrapper" @click="Event">
             <p class="issue-content">{{ data.name }}</p>
             <span class="issue-status">{{ data.status }}</span>
         </div>
@@ -17,6 +17,11 @@
             'id': Number,
             'modifier': String,
         },
+        methods: {
+            Event() {
+                this.$emit('event', this.id);
+            }
+        },
     }
 
 </script>
@@ -27,7 +32,7 @@
         flex-grow: 1;
         margin-left: 10px;
         cursor: pointer;
-        height: 35px;
+        height: 100%;
         align-items: center;
         justify-content: space-between;
     }

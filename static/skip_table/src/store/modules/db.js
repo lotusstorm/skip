@@ -7,7 +7,12 @@ const state = {
 
     globalLoaderShow: false,
     addIssueLoaderShow: false,
-    notRenderIssues: ['qa.Closed', 'dev.Closed', 'dev.Resolved', 'qa.Resolved']
+    notRenderIssues: [
+        'qa.Closed',
+        'dev.Closed',
+        // 'dev.Resolved',
+        // 'qa.Resolved'
+    ]
 };
 
 const mutations = {
@@ -17,7 +22,7 @@ const mutations = {
 
     setIssues: (state, data) => {
         data.forEach(el => el['bind'] = false);
-        state.issues = data.sort(i => i['id']).reverse()
+        state.issues = data
     },
 
     setGlobalLoaderShow: (state, value) => {
@@ -80,7 +85,7 @@ const getters = {
     },
 
     getIssues: state => {
-        return state.issues
+        return state.issues.sort((a, b) => a['id'] > b['id'] ? -1 : 1)
     },
 
     getGlobalLoaderShow: state => {

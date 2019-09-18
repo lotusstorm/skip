@@ -18,6 +18,14 @@ export const TREE = ['components', 'modules', 'tests', 'steps'];
 
 
 /**
+ * Точки входа на иерархию ниже в дереве для сортировки
+ * @type {string[]}
+ */
+export const SORT = ['components', 'steps'];
+const r = /\d+/;
+
+
+/**
  * Рекурсивная функция для модифицирования полученного с сервера массива
  * добавляет во все уровни иерархии новое поле <disable> которое используется для отривоки елементов
  * @param {Array} data - массив
@@ -30,6 +38,9 @@ export const distributor = (data) => {
         el['disable'] = false;
         for (let i in el) {
             if (TREE.indexOf(i) !== -1) {
+                if (SORT.indexOf(i) !== -1) {
+                    el[i].sort((a, b) => Number(a['name'].match(r)) > Number(b['name'].match(r)) ? 1 : -1)
+                }
                 distributor(el[i]);
             }
         }
@@ -60,9 +71,18 @@ export const updater = (data, id) => {
     data.forEach(el => {
         for (let i in el) {
             if (TREE.indexOf(i) !== -1) {
+
                 updater(el[i], id);
             }
         }
         el['issues'] = el['issues'].filter(x => x !== id);
     })
 };
+
+/**
+ * Сохраняет в localstore координаты скрола
+ * @param {*} event 
+ */
+export const scroll = (event) => {
+    localStorage.setItem(`${event.target.id}`, event.target.scrollTop);
+}

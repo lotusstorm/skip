@@ -69,7 +69,8 @@
              * роутинг
              */
             toItems() {
-                this.$router.push({name: 'items'})
+                // this.$router.push({name: 'items'});
+                this.$router.go(-1);
             },
             /**
              * Метод для получения развернутой информации об issue по id

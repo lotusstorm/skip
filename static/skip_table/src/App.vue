@@ -140,9 +140,9 @@
         --add-panel-add-btn-border-color-hover: #2a3744;
         --add-panel-add-btn-text-color: #f0f0f0;
         --add-panel-add-btn-text-color-hover: #f0f0f0;
-        --add-panel-input-bg-color: #2a3744;
+        --add-panel-input-bg-color: #384857;
         --add-panel-input-text-color: #f0f0f0;
-        --add-panel-input-border-color: #2a3744;
+        --add-panel-input-border-color: #384857;
         --add-panel-input-placeholder-color: #f0f0f0;
     }
 
@@ -197,14 +197,17 @@
     .table {
         display: flex;
         flex-direction: column;
-        margin-bottom: 8px;
-        width: 600px;
+        /* margin-bottom: 8px; */
+        width: 545px;
         height: 95%;
         max-height: 800px;
+        max-width: 560px;
         background-color: var(--table-bg-color);
         border: var(--table-bg-border-color);
         box-shadow: 0 8px 10px 2px rgba(0, 0, 0, 0.58);
-        margin-top: 8px;
+        /* margin-top: 8px; */
+        flex: 1;
+        margin: 8px 4px;
     }
 
     .table__wrapper {
@@ -248,6 +251,8 @@
         align-items: center;
         width: 450px;
         height: 40px;
+        min-width: 370px;
+        min-height: 40px;
         font-size: 30px;
         border-radius: 5px;
         margin: 0 0 0 30px;
@@ -286,11 +291,10 @@
 
     input[type=checkbox] + label:before {
         font-family: icomoon;
-        content: "\e9fa";
+        content: "\e999";
         font-size: 20px;
         color: #f5f5f5;
         position: relative;
-        /*top: 5px;*/
         left: 5px;
         border-radius: 2px;
         display: inline-block;
@@ -305,7 +309,7 @@
 
     input[type=checkbox]:checked + label:before {
         font-family: icomoon;
-        content: "\e9fa";
+        content: "\e999";
         font-size: 20px;
         color: #2A3744;
     }
@@ -415,6 +419,18 @@
     .disable {
         pointer-events: none;
         opacity: .5 !important;
+    }
+
+    .modules {
+        min-width: 525px;
+    }
+
+    .tests {
+        min-width: 525px;
+    }
+
+    .issue {
+        min-width: 460px;
     }
 
 </style>

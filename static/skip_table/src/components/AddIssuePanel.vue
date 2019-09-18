@@ -61,18 +61,19 @@
     .add-issue {
         display: flex;
         flex-flow: row wrap;
+        justify-content: center;
         background-color: var(--add-panel-bg-color);
-        height: 45px;
+        width: 100%;
     }
 
     .add-issue__wrapper {
         display: flex;
         flex-flow: row wrap;
-        width: 100%;
-        height: 100%;
+        height: 35px;
+        width: 99%;
     }
 
-    .add-issue__input {
+    /* .add-issue__input {
         box-sizing: border-box;
         padding: 2px 2px 2px 10px;
         background-color: var(--add-panel-input-bg-color);
@@ -81,6 +82,24 @@
         color: var(--add-panel-input-text-color);
         flex-grow: 1;
         height: 100%;
+        border-top-left-radius: 5px;
+        border-bottom-left-radius: 5px; 
+    } */
+
+    .add-issue__input {
+        box-sizing: border-box;
+        padding: 2px 2px 2px 10px;
+        background-color: #2a3744;
+        border: 2px solid #2a3744;
+        border-right: none;
+        color: var(--add-panel-input-text-color);
+        flex-grow: 1;
+        height: 100%;
+    }
+
+    .add-issue__input:focus {
+        border-bottom: 2px solid #bd2f2f;
+        transition: border-bottom ease 0.2s;
     }
 
     .add-issue__input::placeholder {
@@ -98,6 +117,8 @@
         height: 100%;
         background-color: var(--add-panel-add-btn-bg-color);
         color: var(--add-panel-add-btn-text-color);
+        border-top-right-radius: 5px;
+        border-bottom-right-radius: 5px;
     }
 
     .add-issue__button:hover {
