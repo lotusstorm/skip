@@ -12,7 +12,7 @@
             </li>
         </ul>
         <div class="version">
-            <h1 class="version-content">v.1.0.1.1</h1>
+            <h1 class="version-content">v.2.0.1.1</h1>
         </div>
     </div>
 </template>
@@ -27,6 +27,7 @@
             ...mapGetters([
                 'getBranch',
                 'getOs',
+                'getData',
             ]),
         },
         methods: {
@@ -43,11 +44,8 @@
             selectBranch(event) {
                 let select = {
                     id: null,
-                    status: false
-                };
-
-                let render = {
-                    data: [],
+                    status: false,
+                    data: []
                 };
 
                 if (this.getBranch !== event.target.dataset.id && event.target.dataset.id != undefined) {
@@ -60,8 +58,7 @@
                             os: this.getOs
                         };
 
-                        this.loadData(data);
-                        this.loadTestRender(render);
+                        this.loadData({'data': data, 'old_data': this.getData, 'cache': false});
                     }
                 }
             },

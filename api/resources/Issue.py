@@ -4,20 +4,20 @@ import re
 from flask import request
 from flask_restful import Resource
 import math
-from service_to_synchronize_tests_and_bugs.api.Structures import BugSchema, BugStructure, db
+from service_to_synchronize_tests_and_bugs.api.Structures import BugStructure, db, AddictionsStructure
 from service_to_synchronize_tests_and_bugs.api.helpers_for_api import (search_issue_by_id, PASSWORD, USERNAME,
                                                                        JQL_BUG_STATUS, search_issue_by_name,
                                                                        search_all_issues, JQL_PROJECT_BUG_STATUS,
                                                                        JQL_PROJECT_BUG, Projects, record_info,
-                                                                       JQL_BUGS, STRUCTURES, StatusesDeny)
-
-bugs_schema = BugSchema(many=True)
-bug_schema = BugSchema()
+                                                                       JQL_BUGS, StatusesDeny, bug_schema, bugs_schema)
 
 
 class AddIssue(Resource):
     @record_info
     def post(self):
+        """
+        Запрос для добавления issue
+        """
         json_data = request.get_json(force=True)
 
         if not json_data:
@@ -67,6 +67,9 @@ class AddIssue(Resource):
 class UpdateIssue(Resource):
     @record_info
     def put(self):
+        """
+        Запрос для обновления issue
+        """
         json_data = request.get_json(force=True)
         if not json_data:
             return {'status': 'No input data provided'}, 400
@@ -78,19 +81,13 @@ class UpdateIssue(Resource):
         if not category:
             return {'status': 'Category does not exist'}, 400
 
-        if issue.fields.status.name in [i.value for i in StatusesDeny]:
+        if issue.fields.status.name in set([i.value for i in StatusesDeny]):
 
-            for h in set(STRUCTURES.keys()):
-                for f in set(STRUCTURES[h].keys()):
-
-                    for j in STRUCTURES[h][f].keys():
-                        elements = STRUCTURES[h][f][j].query.all()
-                        if elements:
-                            for element in set(elements):
-                                if int(json_data['id']) in element.issues:
-                                    element.issues = [i for i in element.issues if i != int(json_data['id'])]
-                                    if not element.issues:
-                                        element.skip = False
+            elements = AddictionsStructure.query.all()
+            if elements:
+                for element in set(elements):
+                    if int(json_data['id']) in element.issues:
+                        element.issues = [i for i in element.issues if i != int(json_data['id'])]
 
         category.name = issue.key
         category.status = issue.fields.status.name
@@ -107,6 +104,9 @@ class UpdateIssue(Resource):
 class DeleteIssue(Resource):
     @record_info
     def post(self):
+        """
+        Запрос для удаления issue
+        """
         json_data = request.get_json(force=True)
         if not json_data:
             return {'status': 'No input data provided'}, 400
@@ -115,17 +115,11 @@ class DeleteIssue(Resource):
         if not category:
             return {'status': 'Category does not exist'}, 400
 
-        for h in set(STRUCTURES.keys()):
-            for f in set(STRUCTURES[h].keys()):
-
-                for j in STRUCTURES[h][f].keys():
-                    elements = STRUCTURES[h][f][j].query.all()
-                    if elements:
-                        for element in set(elements):
-                            if int(json_data['id']) in element.issues:
-                                element.issues = [i for i in element.issues if i != int(json_data['id'])]
-                                if not element.issues:
-                                    element.skip = False
+        elements = AddictionsStructure.query.all()
+        if elements:
+            for element in set(elements):
+                if int(json_data['id']) in element.issues:
+                    element.issues = [i for i in element.issues if i != int(json_data['id'])]
 
         data, errors = bug_schema.dump(category)
         if errors:
@@ -140,24 +134,27 @@ class DeleteIssue(Resource):
 class GetIssue(Resource):
     @record_info
     def post(self):
+        """
+        Запрос для получения более полной информации о конкретном issue
+        """
         json_data = request.get_json(force=True)
         if not json_data:
             return {'status': 'No input data provided'}, 400
 
         issue = search_issue_by_id(json_data['id'], USERNAME, PASSWORD)
 
-        data = dict()
-
-        data['name'] = issue.key
-        data['url'] = issue.self
-        data['summary'] = issue.fields.summary
-        data['description'] = issue.fields.description
-        data['statusName'] = issue.fields.status.name
-        data['statusImg'] = issue.fields.status.iconUrl
-        data['reporter'] = issue.fields.reporter.displayName
-        data['priorityName'] = issue.fields.priority.name
-        data['priorityImg'] = issue.fields.priority.iconUrl
-        data['fixVersions'] = issue.fields.priority.iconUrl
+        data = {
+            'name': issue.key,
+            'url': issue.self,
+            'summary': issue.fields.summary,
+            'description': issue.fields.description,
+            'statusName': issue.fields.status.name,
+            'statusImg': issue.fields.status.iconUrl,
+            'reporter': issue.fields.reporter.displayName,
+            'priorityName': issue.fields.priority.name,
+            'priorityImg': issue.fields.priority.iconUrl,
+            'fixVersions': issue.fields.priority.iconUrl
+        }
 
         return {"status": 'success', 'data': data}, 200
 
@@ -166,6 +163,9 @@ class Issues(Resource):
 
     @record_info
     def get(self):
+        """
+        Запрос для получения всех issues из БД
+        """
         category = BugStructure.query.all()
         data, errors = bugs_schema.dump(category)
         if errors:
@@ -175,6 +175,9 @@ class Issues(Resource):
 
     @record_info
     def post(self):
+        """
+        Запрос для добавления issues в БД
+        """
         json_data = request.get_json(force=True)
         if not json_data:
             return {'status': 'No input data provided'}, 400
@@ -218,18 +221,17 @@ class Issues(Resource):
 
     @record_info
     def delete(self):
+        """
+        Запрос для удаления всех issues из БД
+        """
         category = BugStructure.query.all()
 
-        for h in set(STRUCTURES.keys()):
-            for f in set(STRUCTURES[h].keys()):
-
-                for j in STRUCTURES[h][f].keys():
-                    elements = STRUCTURES[h][f][j].query.all()
-                    if elements:
-                        for element in set(elements):
-                            if element.issues:
-                                element.skip = False
-                                element.issues = []
+        elements = AddictionsStructure.query.all()
+        if elements:
+            for element in set(elements):
+                if element.issues:
+                    element.skip = False
+                    element.issues = []
 
         for el in set(category):
             db.session.delete(el)
@@ -244,6 +246,9 @@ class Issues(Resource):
 
     @record_info
     def put(self):
+        """
+        Запрос для обновления всех issues в БД
+        """
         json_data = request.get_json(force=True)
         if not json_data:
             return {'status': 'No input data provided'}, 400
@@ -271,17 +276,11 @@ class Issues(Resource):
 
             if category:
                 if issue.fields.status.name in set([i.value for i in StatusesDeny]):
-                    for h in set(STRUCTURES.keys()):
-                        for f in set(STRUCTURES[h].keys()):
-
-                            for j in STRUCTURES[h][f].keys():
-                                elements = STRUCTURES[h][f][j].query.all()
-                                if elements:
-                                    for element in set(elements):
-                                        if int(issue.id) in element.issues:
-                                            element.issues = [i for i in element.issues if i != int(issue.id)]
-                                            if not element.issues:
-                                                element.skip = False
+                    elements = AddictionsStructure.query.all()
+                    if elements:
+                        for element in set(elements):
+                            if int(issue.id) in element.issues:
+                                element.issues = [i for i in element.issues if i != int(issue.id)]
 
                 category.name = issue.key
                 category.status = issue.fields.status.name

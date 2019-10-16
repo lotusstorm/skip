@@ -1,14 +1,12 @@
 # -*- coding: utf-8 -*-
 import os
-import logging
-
 from flask_script import Manager
 from flask_migrate import Migrate, MigrateCommand
 from Structures import db
 from runner import create_app
+from logging_lib import RootLogger as logger
 
 DIR_NAME = 'db'
-logger = logging.getLogger('axxon')
 app = create_app('config')
 migrate = Migrate(app, db)
 manager = Manager(app)

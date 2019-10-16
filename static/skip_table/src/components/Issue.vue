@@ -25,7 +25,7 @@
 
 <script>
     import { mapGetters } from 'vuex'
-    import { TREE } from '../store/globalSettings'
+    import { status } from '../store/globalSettings'
 
     export default {
         name: "Issue",
@@ -48,12 +48,14 @@
              */
             checkElement(event) {
                 this.checker(this.getSelected['data'], event.target.checked, this.id);
+                status(this.getData);
+                this.getSelected['status'] = this.getSelected['data']['issues'].length !== 0
             },
             /**
              * роутинг
              */
             toDescriptions(id) {
-                this.$router.push({ name: 'home_description', params: { id } })
+                this.$router.push({name: 'home_description', params: {id}})
             },
             /**
              * Рекурсивный метод для привязывания и отвязывания issue к выбранному объекту
@@ -65,11 +67,10 @@
                 data = Array.isArray(data) ? data : [data];
 
                 data.forEach(el => {
-                    for (let i in el) {
-                        if (TREE.indexOf(i) !== -1) {
-                            this.checker(el[i], status, id);
-                        }
+                    if (Object.keys(el).indexOf('data') !== -1) {
+                        this.checker(el['data'], status, id);
                     }
+
                     if (status) {
                         if (el['issues'].indexOf(id) === -1) {
                             el['issues'].push(id);
@@ -77,11 +78,11 @@
                     } else {
                         el['issues'] = el['issues'].filter(x => x !== id);
                     }
-                })
+                });
             },
+
         }
     }
-
 </script>
 
 <style scoped>

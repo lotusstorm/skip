@@ -47,16 +47,16 @@ const actions = {
             })
     },
 
-    loadData: ({commit}, data) => {
+    loadData: ({commit}, { data, old_data, cache }) => {
         commit('setGlobalLoaderShow', true);
-        HTTP.post("/categories", {
+        HTTP.post("/data", {
                 branch: data.branch,
                 os: data.os
             })
             .then((response) => {
-                let data = response.data.data;
-                distributor(data);
-                commit('setData', data);
+                let new_data = response.data.data;
+                distributor(new_data, old_data, cache);
+                commit('setData', new_data);
             })
             .catch((error) => {
                 console.log(error);
@@ -68,6 +68,10 @@ const actions = {
 
     actionIssues: ({commit}, data) => {
         commit('setIssues', data);
+    },
+
+    actionSetData: ({commit}, data) => {
+        commit('setData', data);
     },
 
     loadGlobalLoaderShow: ({commit}, value) => {

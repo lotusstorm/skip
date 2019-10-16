@@ -50,6 +50,7 @@
 <script>
     import { mapGetters, mapActions } from 'vuex'
 
+
     export default {
         name: "Header",
         data() {
@@ -61,6 +62,8 @@
         computed: {
             ...mapGetters([
                 'getBranch',
+                'getIssues',
+                'getData',
                 'getOs',
             ]),
         },
@@ -76,11 +79,8 @@
             selectOs(event) {
                 let select = {
                     id: null,
-                    status: false
-                };
-
-                let render = {
-                    data: [],
+                    status: false,
+                    data: []
                 };
 
                 this.loadOs(event.target.value);
@@ -91,8 +91,7 @@
                     os: this.getOs
                 };
 
-                this.loadData(data);
-                this.loadTestRender(render);
+                this.loadData({'data': data, 'old_data': this.getData, 'cache': false});
             },
             /**
              * роутинг
@@ -100,24 +99,18 @@
              */
             to(to) {
                 this.$router.push({ name: to});
-
-                let data = {
+                let select = {
                     id: null,
                     status: false,
                     data: []
                 };
 
-                let render = {
-                    data: [],
-                };
-
-                this.loadTestRender(render);
-                this.loadSelected(data);
                 this.loadHomeIssuesFilter('all');
                 if (to === 'home') {
                     this.$nextTick(() => {
                         this.scrollTo('modules');
                         this.scrollTo('issues');
+                        this.loadSelected(select);
                     });
                 }
             },
@@ -125,7 +118,7 @@
                 let div = document.querySelector(`#${name}`);
                 let scroll = localStorage.getItem(`${name}`) || 0;
                 div.scrollTop = scroll;
-            }
+            },
         }
     }
 </script>
@@ -159,8 +152,6 @@
     .logo__icon:before {
         font-family: icomoon;
         content: "\e999";
-        /* content: "\e994"; */
-        /* content: "\e995"; */
         color: #bd2f2fde;
     }
 

@@ -20,10 +20,10 @@
         created() {
             let data = {
                 branch: this.getBranch,
-                os: this.getOs
+                os: this.getOs,
             };
 
-            this.$store.dispatch('loadData', data);
+            this.$store.dispatch('loadData', {'data': data, 'old_data': this.getData, 'cache': false});
             this.$store.dispatch('loadIssues');
         },
         computed: {
@@ -31,6 +31,7 @@
                 'getBranch',
                 'getOs',
                 'getGlobalLoaderShow',
+                'getData',
             ]),
         },
     }
@@ -82,7 +83,7 @@
         display: flex;
         flex-flow: row wrap;
         font-family: 'Avenir', Helvetica, Arial, sans-serif;
-        justify-content: space-around;
+        justify-content: center;
         text-align: center;
         width: 100%;
         flex-grow: 1;
@@ -95,7 +96,7 @@
         width: 545px;
         height: 95%;
         max-height: 800px;
-        max-width: 560px;
+        max-width: 860px;
         background-color: var(--table-bg-color);
         border: var(--table-bg-border-color);
         box-shadow: 0 8px 10px 2px rgba(0, 0, 0, 0.58);
@@ -185,6 +186,7 @@
         overflow: auto;
     }
 
+
     input[type=checkbox], input[type=radio] {display: none;}
 
     input[type=checkbox] + label:before {
@@ -196,6 +198,7 @@
         border-radius: 2px;
         display: inline-block;
         border: 6px solid #f5f5f5;
+        color: #f5f5f5;
         margin: -5px 5px 0 0;
         height: 20px;
         width: 20px;
@@ -313,7 +316,7 @@
 
     .issue--style:hover {
         background-color: var(--issue-hover-style);
-        width: 88%;
+        width: 87%;
     }
 
     .disable {
@@ -332,5 +335,4 @@
     .issue {
         min-width: 460px;
     }
-
 </style>

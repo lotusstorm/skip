@@ -12,11 +12,17 @@
                 :modifier="'cancel'"
                 :description="'Cancel'"
         ></app-controllers-button>
+        <app-controllers-button
+                :disabled="getData.length === 0"
+                @event="getReport"
+                :modifier="'download'"
+                :description="'Report'"
+        ></app-controllers-button>
     </div>
 </template>
 
 <script>
-    import { HTTP } from '../store/globalSettings'
+    import {distributor, HTTP, HTTP_2} from '../store/globalSettings'
     import { mapActions, mapGetters } from 'vuex'
     import ControllersButton from '@/components/ControllersButton.vue'
 
@@ -25,6 +31,7 @@
         name: "Controllers",
         data() {
             return {
+                url: HTTP_2,
                 store: []
             }
         },
@@ -32,9 +39,7 @@
             ...mapGetters([
                 'getData',
                 'getBranch',
-                'getSelected',
                 'getOs',
-                'getDataForRender',
             ]),
         },
         components: {
@@ -44,20 +49,30 @@
             ...mapActions([
                 'loadGlobalLoaderShow',
                 'loadData',
-                'loadTestRender',
                 'loadSelected',
+                'actionSetData',
             ]),
             /**
              * Сохраняет изменения на клиенте в БД
              */
             save() {
-                // console.log(this.getData);
-                // console.log(this.getDataForRender);
+                let select = {
+                    id: null,
+                    status: false,
+                    data: []
+                };
+
                 this.loadGlobalLoaderShow(true);
                 HTTP.put('/global_update', {
                         branch: this.getBranch,
                         data: this.getData,
                         os: this.getOs,
+                    })
+                    .then((response) => {
+                        let data = response.data.data;
+                        distributor(data, this.getData, true);
+                        this.actionSetData(data);
+                        this.loadSelected(select);
                     })
                     .catch((error) => {
                         console.log(error);
@@ -69,8 +84,10 @@
              * Откатывает все изменения на клиенте
              */
             cancel() {
-                let render = {
-                    data: [],
+                let select = {
+                    id: null,
+                    status: false,
+                    data: []
                 };
 
                 let data = {
@@ -78,9 +95,19 @@
                     os: this.getOs
                 };
 
-                this.loadData(data);
-                this.loadTestRender(render);
-                this.loadSelected(render);
+                this.loadData({'data': data, 'old_data': this.getData, 'cache': true});
+                this.loadSelected(select);
+            },
+            getReport() {
+                HTTP_2.post("/generate_report")
+                      .then((response) => {
+                          const url = window.URL.createObjectURL(new Blob([response.data], {type: 'text/xls'}));
+                          const link = document.createElement('a');
+                          link.href = url;
+                          link.setAttribute('download', 'report.xls');
+                          document.body.appendChild(link);
+                          link.click();
+                      });
             },
         }
     }
@@ -90,7 +117,6 @@
     .controllers {
         display: flex;
         flex-flow: row wrap;
-        /*margin-bottom: 20px;*/
         width: 100%;
         height: 50px;
         align-items: center;

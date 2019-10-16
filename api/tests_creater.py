@@ -1,145 +1,116 @@
 # -*- coding: utf-8 -*-
 import os
+import re
 import sys
 from collections import namedtuple
-from uuid import uuid4
 from platform_helpers import import_module
 import inspect
+
+from service_to_synchronize_tests_and_bugs.api.skip_loger import SkipLogger
 
 if os.name == 'nt':
     # [IMPORTANT] wmi нужен из за ошибки динамического импорта при использовании методов через REST-Api !!!
     import wmi
     # ******************
+logger = SkipLogger
 
 
-PATH = os.path.join(os.environ['AUTOTEST_ROOT_DIR'], 'test_suites')
-sys.path.append(PATH)
-CATEGORIES_FILTER = ['blocker', 'major', 'internal']
 
-Module = namedtuple('Module', 'root category component test')
-
-
-def test_structure(imp_module):
+def test_structure(imp_module, parent_id):
     """
-
-    :return:
+    Преобразует структуру теста в list(dict())
     """
-    arr = []
+    store = []
     try:
-        module_test = import_module(_concat([imp_module, 'test']))
+        module_test = import_module("test", relative_path=imp_module)
 
         for i in inspect.getmembers(module_test):
             if 'Test' in i[0] and inspect.isclass(i[1]):
-                data = {
+                store.append({
                     'name': i[0],
-                    'module_id': _concat(['test_suites', imp_module]),
-                    'id': _concat(['test_suites', imp_module, i[0]]),
-                    'data': [],
-                }
-
-                for j in inspect.getmembers(i[1]):
-                    if ('test' in j[0] or 'step' in j[0]) and inspect.ismethod(j[1]):
-                        data['data'].append({
+                    'parent_id': parent_id,
+                    'current_id': _concat([path_to_id(imp_module), i[0]]),
+                    'data': [
+                        {
                             'name': j[0],
                             'description': inspect.getdoc(j[1]),
-                            'test_id': _concat(['test_suites', imp_module, i[0]]),
-                            'id': _concat(['test_suites', imp_module, i[0], j[0]])
-                        })
+                            'parent_id': _concat([path_to_id(imp_module), i[0]]),
+                            'current_id': _concat([path_to_id(imp_module), i[0], j[0]]),
+                        } for j in inspect.getmembers(i[1]) if ('test' in j[0] or 'step' in j[0]) and inspect.ismethod(j[1])],
+                })
 
-                arr.append(data)
-
-        return arr
     except Exception as ex:
-        print '{} [ERROR] {}'.format(imp_module, ex)
-        return arr
+        logger.exception('{} [ERROR] {}'.format(imp_module, ex))
+    return store
 
 
 def _concat(args):
     """
-
-    :param args:
-    :return:
+    Соединяет переданные елементы в id
     """
     return '.'.join([str(i) if not isinstance(i, list) else _concat(i) for i in args])
 
 
-def get_test_uuid(imp_module):
+def path_to_id(path):
     """
-
-    :param imp_module:
-    :return:
+    превращает путь в id
     """
-    module = import_module('{}.{}'.format(imp_module, '__init__'))
-    try:
-        return module.TEST_ID
-    except Exception as ex:
-        raise ex
+    return re.compile(r'test_suites.*').search(path).group(0).replace('\\', '.')
 
 
-def tests_creater(path):
+def tests_creater(path, parent_id=None, file_name='test'):
     """
-
-    :param path:
-    :return:
+    Переводит структуру файловой системы в object
     """
-    categories = dict()
-    test_categories = os.listdir(path)
-    for test_category in test_categories:
-        if os.path.isdir(os.path.join(path, test_category)) and test_category in CATEGORIES_FILTER:
-            components = dict()
-            test_components = os.listdir(os.path.join(path, test_category))
-            for test_component in test_components:
-                if os.path.isdir(os.path.join(path, test_category, test_component)):
-                    test_cases = dict()
-                    tests_names = os.listdir(os.path.join(path, test_category, test_component))
-                    for test in tests_names:
-                        if os.path.isdir(os.path.join(path, test_category, test_component, test)) \
-                                and 'test.py' in os.listdir(os.path.join(path, test_category, test_component, test)):
+    store_ = []
+    listdir_ = os.listdir(path)
 
-                            module = [test_category, test_component, test]
-                            test_cases[test] = {
-                                'id': _concat(['test_suites', module]),
-                                'name': test,
-                                'data': test_structure(module),
-                            }
+    for dir_ in listdir_:
+        next_ = os.path.join(path, dir_)
+        if os.path.isdir(next_) and '{}.py'.format(file_name) in os.listdir(next_):
 
-                    components[test_component] = {
-                        'id': _concat([test_category, test_component]),
-                        'name': test_component,
-                        'data': test_cases,
-                    }
-            categories[test_category] = {
-                'id': test_category,
-                'name': test_category,
-                'data': components,
-            }
-    return categories
+            store_.append({
+                'parent_id': parent_id,
+                'current_id': path_to_id(next_),
+                'name': dir_,
+                'data': test_structure(next_, parent_id),
+            })
+            return store_
+
+        if os.path.isdir(next_):
+            id_ = path_to_id(next_)
+
+            store_.append({
+                'parent_id': parent_id,
+                'current_id': id_,
+                'name': dir_,
+                'data': tests_creater(next_, id_, file_name)
+            })
+    return store_
 
 
-def add_uuid(path):
-    """
+if __name__ == '__main__':
+    from os import walk
 
-    :param path:
-    :return:
-    """
-    test_categories = os.listdir(path)
-    for test_category in test_categories:
-        if os.path.isdir(os.path.join(path, test_category)) and test_category in CATEGORIES_FILTER:
-            test_components = os.listdir(os.path.join(path, test_category))
-            for test_component in test_components:
-                if os.path.isdir(os.path.join(path, test_category, test_component)):
-                    tests_names = os.listdir(os.path.join(path, test_category, test_component))
-                    for test in tests_names:
-                        if os.path.isdir(os.path.join(path, test_category, test_component, test)) \
-                                and os.listdir(os.path.join(path, test_category, test_component, test)):
+    # f = []
+    # for (dirpath, dirnames, filenames) in walk(PATH):
+    #     f.extend(filenames)
+    #     break
+    # print f
 
-                            try:
-                                get_test_uuid('.'.join([test_category, test_component, test]))
-                            except:
-                                with open(os.path.join(path, test_category, test_component, test, '__init__.py'), 'a+') as inp:
-                                    inp.write('\nTEST_ID = "{}"\n'.format(uuid4()))
+    # for root, dirs, files in os.walk(PATH):
+    #     print (root, os.walk(root).next()[-1])
+
+    # MODULE = ['test_suites', 'internal', 'test_install', 'camera_markers']
+    # # MODULE = r'test_suites.major.alarms.filter_window'
+    # print test_structure('D:\\Programming\\Repositories\\axxonnext-auto-testing\\test_suites_2\web\helpers_2\\AWS\\test')
+    # tests_creater(PATH)
+    # test_creater_walk(PATH)
+    # a = tests_creater(PATH)
+    # path_to_id()
+    # p = 'D:\\Programming\\Repositories\\axxonnext-auto-testing\\test_suites\\blocker\\14-time-compressor'
+    # p = 'D:\\Programming\\Repositories\\axxonnext-auto-testing\\test_suites_2\\web\\helpers_2\\AWS\\test\\TestArchiveSelect'
+    # path_to_id(p)
+    # pass
 
 
-# MODULE = ['test_suites', 'internal', 'test_install', 'camera_markers']
-# # MODULE = r'test_suites.major.alarms.filter_window'
-# print test_structure(MODULE)

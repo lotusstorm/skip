@@ -3,47 +3,60 @@
         <div
                 :class="['table__content-item', modifier, category, active]"
         >
-            <input
-                    type="checkbox"
+            <app-custom-button
                     :id="id"
-                    @change="checkElement"
-                    :checked="data.skip"
-            >
-            <label
-                    :for="id"
-                    class="checkbox"
-            ></label>
+                    v-show="isFolder"
+                    :modifier="'collapse-button'"
+                    @event="collapse(data)"
+            ></app-custom-button>
             <h1
                     class="description"
                     @click="selectedConf"
                     :title="description"
             >{{ data.name | validName }}</h1>
-            <slot name="controllers"></slot>
+            <input
+                    type="checkbox"
+                    :id="data.current_id"
+                    @change="checkElement"
+                    :checked="data.skip"
+            >
+            <label
+                    :for="data.current_id"
+                    class="checkbox"
+            ></label>
+
+
         </div>
-        <div :class="['children-wrapper', {'disable' : data.disable}]" v-show="data.collapse">
-            <slot name="childrens"></slot>
-        </div>
+        <ul :class="['children-wrapper', {'disable' : data.disable}]" v-show="data.collapse">
+            <custom-item
+                    v-for="(child, index) in data.data"
+                    :key="index"
+                    :data="child"
+                    :id="index"
+                    :category="'component'"
+                    :description="child.description !== undefined ? child.description : child.name"
+                    :modifier="'step--style'"
+                    :active="'item--active'"
+            ></custom-item>
+        </ul>
     </li>
 </template>
 
 <script>
     import { mapActions } from 'vuex'
-    import { TREE } from '../store/globalSettings'
+    import { binder, removeClass } from '../store/globalSettings'
+    import CustomButton from '@/components/CustomButton.vue'
 
     export default {
         name: "CustomItem",
-        data() {
-            return {
-                show: false,
-                ignore: ['test', 'step'],
-            }
+        components: {
+            'app-custom-button': CustomButton,
         },
         props: {
             'data': Object,
-            'description': String,
-            'id': String,
+            'id': Number,
             'category': String,
-            'disable': Array,
+            'description': String,
             'modifier': String,
             'active': String,
         },
@@ -58,18 +71,22 @@
                 return  value.length >= 25 ? `${value.slice(0, 20)}...` : value;
             }
         },
+        computed: {
+            isFolder() {
+                return this.data.data && this.data.data.length;
+            },
+        },
         methods: {
             ...mapActions([
                 'loadSelected',
-                'loadTestRender',
             ]),
             /**
              * Групирующий метод для привязки и отвязки issue к выбранному объекту
              * @param event
              */
             checkElement(event) {
-                this.binder(this.data, this.data['issues'], event.target.checked);
-                this.selectedConf();
+                binder(this.data, this.data['issues'], event.target.checked);
+                this.selectedConf(event);
                 if (!event.target.checked) {
                     this.data['issues'] = []
                 }
@@ -77,86 +94,38 @@
             /**
              * При выборе объекта конфигурирует нужные елементы для правильной отрисовки
              */
-            selectedConf() {
-                let data = {
-                    id:  this.data['id'],
+            selectedConf(event) {
+                let select = {
+                    id:  this.data['current_id'],
                     status: this.data['skip'],
-                    name: this.category,
                     data: this.data
                 };
-
-                if (this.category === 'module') {
-                    let render = {
-                        data: this.data['tests'],
-                        disable: !this.data['skip'],
-                    };
-
-                    this.loadTestRender(render);
-                } else if (this.ignore.indexOf(this.category) === -1) {
-                    let render = {
-                        data: [],
-                    };
-                    this.loadTestRender(render);
-                }
-
-                this.loadSelected(data);
+                this.loadSelected(select);
                 this.addActiveClass(event);
-            },
-            /**
-             * Рекурсивная метод для конфигурирования дерева выбранного объекта
-             * при активном чек-бокс родителя все дочерние елементы становятся не активными и к их привязанным issues
-             * добаляется issues родителя при неактивном все проделявается обратно
-             * @param {Array} data - массив объектов по которому надо итерироватся
-             * @param {Array} issues - список привязанных элементов который надо добавить или убрать у всех объектов в дереве
-             * @param {Boolean} skip - состояние чек-бокса
-             */
-            binder(data, issues, skip) {
-                data = Array.isArray(data) ? data : [data];
-
-                data.forEach(el => {
-                    for (let i in el) {
-                        if (TREE.indexOf(i) !== -1) {
-                            this.binder(el[i], issues, skip);
-                        }
-                    }
-                    if (skip) {
-                        el['skip'] = skip;
-                        el['issues'] = el['issues'].concat(issues);
-                    } else {
-                        el['issues'] = el['issues'].filter(x => issues.indexOf(x) === -1);
-                        if (el['issues'].length === 0){
-                            el['skip'] = skip;
-                        }
-                    }
-                    el['disable'] = el['skip'];
-                })
             },
             /**
              * Метод добавляющий css селектор .active к элементу на странице
              * @param event
              */
             addActiveClass(event) {
-                let element = document.querySelectorAll(`.${this.active}`);
+                let elements = document.querySelectorAll(`.${this.active}`);
                 let collapseButton = event.currentTarget.parentElement.querySelector('.collapse-button')
                 let collapseButtons = document.querySelectorAll('.collapse-button');
 
-                element.forEach(el => {
-                    el.classList.remove('active');
-                });
+                removeClass(elements, 'active');
 
                 collapseButtons.forEach(el => {
                     el.classList.remove('collapse-button-active');
                 });
 
                 if (collapseButton !== null) {
-                //     // let styles = getComputedStyle(document.documentElement);
-                //     // let colorValue = styles.getPropertyValue(`--${this.category}-style`);
-                    
-                //     // document.documentElement.style.setProperty ('--collapse-btn-active-color', colorValue);
                     collapseButton.classList.add('collapse-button-active');
                 }
 
                 event.currentTarget.parentElement.classList.add('active');
+            },
+            collapse(data) {
+                data['collapse'] = !data['collapse'];
             },
         }
     }
@@ -185,6 +154,7 @@
 
     .checkbox {
         color: #f0f0f0;
+        margin: 5px;
     }
 
 </style>

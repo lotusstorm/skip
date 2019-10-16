@@ -27,11 +27,6 @@
                             :modifier="'single-delete-button'"
                             @event="deleteIssue(issue.id)"
                     ></app-custom-button>
-                    <!-- <app-custom-button
-                            :id="issue.id"
-                            :modifier="'show-description-button'"
-                            @event="toDescriptions(issue.id)"
-                    ></app-custom-button> -->
                 </template>
             </app-settings-issue>
         </ul>
@@ -64,7 +59,7 @@
     import DbControllers from '@/components/DbControllers.vue'
     import ControllersButton from '@/components/ControllersButton.vue'
     import { mapGetters, mapActions } from 'vuex'
-    import { HTTP, updater, searchIssue } from '../store/globalSettings'
+    import { HTTP, updater, searchIssue, status } from '../store/globalSettings'
 
     export default {
         components: {
@@ -84,6 +79,7 @@
                 'getData',
                 'getBranch',
                 'getOs',
+                'getSelected',
             ]),
 
             renderSettingsIssues() {
@@ -129,7 +125,8 @@
                 el['summary'] = data.summary;
 
                 if (this.getNotRenderIssues.indexOf(el['status']) !== -1) {
-                    updater(this.getData,  data.id);
+                    updater(this.getData, data.id);
+                    status(this.getData);
                 }
             },
             /**
@@ -142,7 +139,8 @@
                     }
                 });
 
-                updater(this.getData,  data.id);
+                updater(this.getData, data.id);
+                status(this.getData);
             },
             /**
              * Метод для обновления issue в БД
@@ -200,7 +198,7 @@
                     .then((response) => {
                         const issues = response.data.data;
                         this.actionIssues(issues);
-                        this.loadData(data);
+                        this.loadData({'data': data, 'old_data': this.getData, 'cache': true});
                     })
                     .catch((error) => {
                         console.log(error);
@@ -224,7 +222,7 @@
                         .then((response) => {
                             const issues = response.data.data;
                             this.actionIssues(issues);
-                            this.loadData(data);
+                            this.loadData({'data': data, 'old_data': this.getData, 'cache': true});
                         })
                         .catch((error) => {
                             console.log(error);

@@ -4,41 +4,19 @@ const state = {
 
     dataSearch: '',
 
-    settingsIssuesFilter: 'all',
     settingsIssuesSearch: '',
 
     selected: {
         id: null,
         status: false,
-        name: 'category',
         data: [],
     },
 
-    // ****************** FUTURE ***********************
-
-    projects: ["ACR"],
-    statuses: ["dev.Open"],
-
-    // *************************************************
-
-    testRender: {
-        data: [],
-        disable: false,
-    },
-
-    issueCategory: {
-        name: 'Issue'
-    },
-
-    Branch: 'an-prestable',
+    branch: 'an-minor',
     os: 'windows',
 };
 
 const mutations = {
-    setTestRender: (state, data) => {
-        state.testRender = data;
-    },
-
     setSelected: (state, data) => {
         state.selected = data
     },
@@ -60,7 +38,7 @@ const mutations = {
     },
 
     setBranch: (state, value) => {
-        state.Branch = value
+        state.branch = value
     },
 
     setDataSearch: (state, value) => {
@@ -73,10 +51,6 @@ const mutations = {
 };
 
 const actions = {
-    loadTestRender: ({commit}, data) => {
-        commit('setTestRender', data);
-    },
-
     loadSelected: ({commit}, data) => {
         commit('setSelected', data);
     },
@@ -111,10 +85,6 @@ const actions = {
 };
 
 const getters = {
-    getTestRender: state => {
-        return state.testRender
-    },
-
     getSelected: state => {
         return state.selected
     },
@@ -140,7 +110,7 @@ const getters = {
     },
 
     getBranch: state => {
-        return state.Branch
+        return state.branch
     },
 
     getOs: state => {

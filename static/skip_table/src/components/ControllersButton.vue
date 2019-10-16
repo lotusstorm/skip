@@ -6,7 +6,7 @@
         >
         <label
                 for="controllers-button__id"
-                :class="['controllers', modifier]"
+                :class="['controllers-style', modifier]"
                 @click="Event"
         ><span class="controllers-button__content">{{ description }}</span></label>
     </div>
@@ -33,7 +33,7 @@
     }
 </script>
 
-<style scoped>
+<style>
     #controllers-button__id {
         display: none;
     }
@@ -44,7 +44,6 @@
         height: 35px;
         background-color: #bd2f2fde;
         color: var(--controls-btn-icon-color);
-        padding: 5px;
         margin: 2px;
         border-radius: 5px;
     }
@@ -54,7 +53,7 @@
         color: #f0f0f0;
     }
 
-    .controllers {
+    .controllers-style {
         box-sizing: border-box;
         display: flex;
         align-items: center;
