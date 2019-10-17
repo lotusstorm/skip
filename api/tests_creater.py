@@ -15,14 +15,14 @@ if os.name == 'nt':
 logger = SkipLogger
 
 
-
 def test_structure(imp_module, parent_id):
     """
     Преобразует структуру теста в list(dict())
     """
     store = []
     try:
-        module_test = import_module("test", relative_path=imp_module)
+        id_ = path_to_id(os.path.join(imp_module, 'test'))
+        module_test = import_module(id_)
 
         for i in inspect.getmembers(module_test):
             if 'Test' in i[0] and inspect.isclass(i[1]):
@@ -55,7 +55,7 @@ def path_to_id(path):
     """
     превращает путь в id
     """
-    return re.compile(r'test_suites.*').search(path).group(0).replace('\\', '.')
+    return re.compile(r'test_suites.*').search(path).group(0).replace('\\', '.').replace('/', '.')
 
 
 def tests_creater(path, parent_id=None, file_name='test'):
@@ -75,9 +75,9 @@ def tests_creater(path, parent_id=None, file_name='test'):
                 'name': dir_,
                 'data': test_structure(next_, parent_id),
             })
-            return store_
+            # return store_
 
-        if os.path.isdir(next_):
+        elif os.path.isdir(next_):
             id_ = path_to_id(next_)
 
             store_.append({
@@ -106,11 +106,12 @@ if __name__ == '__main__':
     # print test_structure('D:\\Programming\\Repositories\\axxonnext-auto-testing\\test_suites_2\web\helpers_2\\AWS\\test')
     # tests_creater(PATH)
     # test_creater_walk(PATH)
-    # a = tests_creater(PATH)
+    PATH = os.path.join(os.environ['AUTOTEST_ROOT_DIR'], 'test_suites')
+    a = tests_creater(PATH)
     # path_to_id()
     # p = 'D:\\Programming\\Repositories\\axxonnext-auto-testing\\test_suites\\blocker\\14-time-compressor'
     # p = 'D:\\Programming\\Repositories\\axxonnext-auto-testing\\test_suites_2\\web\\helpers_2\\AWS\\test\\TestArchiveSelect'
     # path_to_id(p)
-    # pass
+    pass
 
 

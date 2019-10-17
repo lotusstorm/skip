@@ -67,8 +67,7 @@
              * @returns {string}
              */
             validName(value) {
-                value = value.replace(/[-_]/gi, ' ');
-                return  value.length >= 25 ? `${value.slice(0, 20)}...` : value;
+                return  value.length >= 20 ? `${value.slice(0, 20)}...` : value;
             }
         },
         computed: {

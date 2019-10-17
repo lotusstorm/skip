@@ -58,17 +58,16 @@ class TestUpdate(Resource):
             return {'status': 'Category does not exist'}, 400
         data, errors_t = addictions_schema.dump(category_t)
 
-        item['skip'] = False
+        item['current_id'] = id_
         item['os'] = os_
         item['branch'] = branch_
-        item['issues'] = []
         item['data'] = data
         issues = issue_binder([i['issues'] for i in data])
-        if issues:
-            item['skip'] = True
-            item['issues'] = issue_repr(issues)
+        item['issues'] = issue_repr(issues)
+        item['skip'] = bool(item['issues'])
 
         for i in data:
             i['issues'] = issue_repr(i['issues'])
+            i['skip'] = bool(i['issues'])
 
         return {"status": "success", "data": item}, 200

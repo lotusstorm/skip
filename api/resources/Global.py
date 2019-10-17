@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-import os
-
 from flask import request, send_file
 from flask_restful import Resource
 
@@ -9,12 +7,10 @@ from excel_manager import ExcelManager
 from mercurial_lib.hg_updater import HGClientWrapper
 from service_to_synchronize_tests_and_bugs.api.helpers_for_api import (record_info, get_from_db, update_in_db,
                                                                        issue_binder, get_name_from_id, issue_repr,
-                                                                       tree_, OUT_PATH, start_in_another_process)
+                                                                       tree_, OUT_PATH, start_in_another_process, PATH)
 from service_to_synchronize_tests_and_bugs.api.Structures import db, AddictionsStructure
 from service_to_synchronize_tests_and_bugs.api.tests_creater import tests_creater
 
-
-PATH = os.path.join(os.environ['AUTOTEST_ROOT_DIR'], 'test_suites')
 
 class GlobalUpdate(Resource):
 

@@ -29,8 +29,8 @@ class StatusesDeny(StrEnum):
 
 
 URL = "https://support.axxonsoft.com/jira"
-USERNAME = ""
-PASSWORD = ""
+USERNAME = "arsen.shogenov"
+PASSWORD = "Zamolchisvoirot1"
 
 JQL_BUG = "issuetype in (Bug)"
 JQL_STATUS = "status in ({statuses})"
@@ -46,6 +46,8 @@ bugs_schema = BugSchema(many=True)
 bug_schema = BugSchema()
 addictions_schema = AddictionsSchema(many=True)
 addiction_schema = AddictionsSchema()
+
+PATH = os.path.join(os.environ['AUTOTEST_ROOT_DIR'], 'test_suites')
 
 
 def jira_error_catcher(func):

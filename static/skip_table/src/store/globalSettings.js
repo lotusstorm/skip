@@ -15,6 +15,9 @@ export const HTTP_2 = axios.create({
 });
 
 
+const r = /\w+/g;
+
+
 /**
  * Рекурсивная функция для модифицирования полученного с сервера массива
  * добавляет во все уровни иерархии новое поле <disable> которое используется для отрисовки елементов
@@ -28,6 +31,8 @@ export const distributor = (new_data, old_data, cache=false) => {
     new_data.forEach(el => {
         if (Object.keys(el).indexOf('data') !== -1) {
             distributor(el['data'], old_data, cache);
+
+            el['data'].sort((a, b) => a['name'].toLowerCase().match(r) > b['name'].toLowerCase().match(r) ? 1 : -1);
         }
 
         el['disable'] = el['skip'];
